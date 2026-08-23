@@ -13,8 +13,8 @@ preview_id = "6ac1d32aaf7c4a32811a46939fb5b03c"
 [vars]
 # The origin link.html is served from. verify_url is built off this.
 # Must be the real deployed domain, no trailing slash.
-SITE_ORIGIN = "https://REPLACE-ME.vercel.app"
+SITE_ORIGIN = "https://skillv1.vercel.app"
 # Comma-separated list of browser origins allowed to call the CORS routes.
-ALLOWED_ORIGINS = "https://REPLACE-ME.vercel.app,https://skilled.gg,http://localhost:3000"
+ALLOWED_ORIGINS = "https://skillv1.vercel.app,https://skilled.gg,http://localhost:3000"
 
 # wrangler secret put CLERK_SECRET_KEY
