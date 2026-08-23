@@ -1,5 +1,5 @@
 import { json, readJson, clientIp, rateLimited } from "./http.js";
-import { requireUser } from "./clerk.js";
+import { requireUser, userProfile, displayNameOf, primaryEmailOf } from "./clerk.js";
 import { hasEntitlement } from "./entitlement.js";
 import { newDeviceCode, newMatchCode } from "./tokens.js";
 import { createSession, mintTokens } from "./sessions.js";
@@ -102,10 +102,17 @@ export async function decide(request, env, approve) {
   rec.status = "approved";
   rec.user_id = user.userId;
   rec.session_id = session.session_id;
+  // The session token proves who this is but carries almost nothing about
+  // them, so the name and picture come from the Backend API keyed on the id it
+  // proved. A failed lookup degrades to whatever the token did carry rather
+  // than blocking a sign-in over a missing avatar.
+  const profile = await userProfile(env, user.userId);
+
   rec.grant = {
     ...tokens,
-    display_name: user.name || (user.email ? user.email.split("@")[0] : "player"),
-    email: user.email,
+    display_name: displayNameOf(profile, user.email) || user.name || "player",
+    email: primaryEmailOf(profile) || user.email || null,
+    avatar_url: profile?.image_url || null,
     role: user.role,
     session_id: session.session_id,
   };

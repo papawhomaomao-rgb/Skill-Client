@@ -30,6 +30,63 @@ export async function requireUser(request, env) {
   };
 }
 
+/* The profile behind a verified session.
+
+   requireUser() above reads only what is inside the session JWT, and a stock
+   Clerk token carries sub/sid/iat/exp and very little else -- no username, no
+   name, no email, no picture, unless someone has hand-built a JWT template that
+   adds them. That is why every launcher sign-in came back as "player": the
+   fallback chain in device.js was being handed null, null and doing its job.
+
+   So the profile is fetched from the Backend API, keyed by the user id the
+   token *did* prove. One extra call, only on the paths that actually need a
+   name to show, and it cannot be spoofed by a doctored token. */
+export async function userProfile(env, userId) {
+  if (!userId) return null;
+  try {
+    const res = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(userId)}`, {
+      headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}` },
+    });
+    if (!res.ok) {
+      console.error("Clerk userProfile failed:", res.status, await res.text());
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("Clerk userProfile error:", err);
+    return null;
+  }
+}
+
+/* What the launcher should print next to the avatar.
+
+   Ordered by what a person would recognise as themselves: the handle they
+   chose, then the name they gave, then the local part of their email.
+
+   Returns null when it genuinely has nothing, rather than inventing "player".
+   That distinction matters on the refresh path, where a Clerk outage would
+   otherwise hand every launcher a placeholder and overwrite a name that was
+   already correct. Choosing the last-resort label is the caller's job, because
+   only the caller knows whether it has an older answer worth keeping. */
+export function displayNameOf(profile, fallbackEmail) {
+  if (profile) {
+    if (profile.username) return profile.username;
+    const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim();
+    if (full) return full;
+  }
+  const email = primaryEmailOf(profile) || fallbackEmail || "";
+  const at = email.indexOf("@");
+  if (at > 0) return email.slice(0, at);
+  return null;
+}
+
+export function primaryEmailOf(profile) {
+  if (!profile || !Array.isArray(profile.email_addresses)) return null;
+  const list = profile.email_addresses;
+  const primary = list.find(e => e.id === profile.primary_email_address_id);
+  return (primary || list[0])?.email_address || null;
+}
+
 export async function requireDev(request, env) {
   const u = await requireUser(request, env);
   if (u.role !== "dev") throw new AuthError("Forbidden", 403);

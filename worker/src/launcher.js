@@ -1,5 +1,5 @@
 import { json, readJson } from "./http.js";
-import { launcherSession } from "./clerk.js";
+import { launcherSession, userProfile, displayNameOf, primaryEmailOf } from "./clerk.js";
 import { hasEntitlement } from "./entitlement.js";
 import { hash } from "./tokens.js";
 import { mintTokens, saveSession, revokeSession } from "./sessions.js";
@@ -29,7 +29,28 @@ export async function refresh(request, env) {
   await env.SKILLED.put(key, JSON.stringify(rec), { expirationTtl: 60 * 60 * 24 });
 
   const tokens = await mintTokens(env, session);
-  return json({ status: "ok", ...tokens });
+
+  // The profile rides along with the rotated tokens.
+  //
+  // A launcher only learns its user's name and picture once, at approve time,
+  // and then keeps showing whatever it was told until somebody links again.
+  // Returning them here means a name that was wrong -- or a picture the user
+  // has since changed -- corrects itself at the next refresh instead of
+  // requiring a sign-out. Once an hour per session, which is nothing.
+  //
+  // A null field reads as "no change" on the launcher side, so a Clerk outage
+  // leaves whatever is already on screen alone rather than replacing a correct
+  // name with a placeholder.
+  const profile = await userProfile(env, session.user_id);
+  const name = displayNameOf(profile, null);
+
+  return json({
+    status: "ok",
+    ...tokens,
+    display_name: name,
+    email: primaryEmailOf(profile),
+    avatar_url: profile?.image_url || null,
+  });
 }
 
 /* 6. POST /api/launcher/heartbeat — launcher bearer, every 15s.
