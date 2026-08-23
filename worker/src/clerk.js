@@ -1,18 +1,26 @@
 import { verifyToken } from "@clerk/backend";
 import { hash } from "./tokens.js";
 
+export class AuthError extends Error {
+  constructor(message = "Unauthorized", status = 401) {
+    super(message);
+    this.name = "AuthError";
+    this.status = status;
+  }
+}
+
 const bearer = request => (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
 
-/* A Clerk session token. Sent by the website and by link.html on approve/deny.
-   Throws a Response on failure — the router catches it. */
+/* A Clerk session token. Sent by the website and by link.html on approve/deny. */
 export async function requireUser(request, env) {
   const token = bearer(request);
-  if (!token) throw new Response("Unauthorized", { status: 401 });
+  if (!token) throw new AuthError("Unauthorized", 401);
   let claims;
   try {
     claims = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY });
-  } catch {
-    throw new Response("Unauthorized", { status: 401 });
+  } catch (err) {
+    console.error("Clerk verifyToken error:", err);
+    throw new AuthError("Unauthorized", 401);
   }
   return {
     userId: claims.sub,
@@ -24,7 +32,7 @@ export async function requireUser(request, env) {
 
 export async function requireDev(request, env) {
   const u = await requireUser(request, env);
-  if (u.role !== "dev") throw new Response("Forbidden", { status: 403 });
+  if (u.role !== "dev") throw new AuthError("Forbidden", 403);
   return u;
 }
 
