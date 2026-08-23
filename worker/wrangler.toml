@@ -1,0 +1,20 @@
+name = "skilled-cloud"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# wrangler kv namespace create SKILLED
+# then paste the id below (and one for --preview)
+[[kv_namespaces]]
+binding = "SKILLED"
+id = "c058e550df6f4d028d7e31043f5d42ae"
+preview_id = "6ac1d32aaf7c4a32811a46939fb5b03c"
+
+[vars]
+# The origin link.html is served from. verify_url is built off this.
+# Must be the real deployed domain, no trailing slash.
+SITE_ORIGIN = "https://REPLACE-ME.vercel.app"
+# Comma-separated list of browser origins allowed to call the CORS routes.
+ALLOWED_ORIGINS = "https://REPLACE-ME.vercel.app,https://skilled.gg,http://localhost:3000"
+
+# wrangler secret put CLERK_SECRET_KEY
