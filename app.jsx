@@ -6,10 +6,10 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const ACCENTS = {
-  violet:{ acc:"oklch(0.70 0.22 305)", acc2:"oklch(0.60 0.24 305)", soft:"oklch(0.70 0.22 305 / 0.14)", line:"oklch(0.70 0.22 305 / 0.34)", glow:"oklch(0.70 0.22 305 / 0.45)" },
-  blue:  { acc:"oklch(0.72 0.17 250)", acc2:"oklch(0.63 0.19 252)", soft:"oklch(0.72 0.17 250 / 0.14)", line:"oklch(0.72 0.17 250 / 0.34)", glow:"oklch(0.72 0.17 250 / 0.45)" },
-  green: { acc:"oklch(0.80 0.20 148)", acc2:"oklch(0.71 0.22 150)", soft:"oklch(0.80 0.20 148 / 0.14)", line:"oklch(0.80 0.20 148 / 0.34)", glow:"oklch(0.80 0.20 148 / 0.45)" },
-  red:   { acc:"oklch(0.70 0.22 25)",  acc2:"oklch(0.61 0.24 25)",  soft:"oklch(0.70 0.22 25 / 0.15)",  line:"oklch(0.70 0.22 25 / 0.36)",  glow:"oklch(0.70 0.22 25 / 0.45)" },
+  violet:{ acc:"oklch(0.64 0.15 293)", acc2:"oklch(0.56 0.16 293)", soft:"oklch(0.64 0.15 293 / 0.12)", line:"oklch(0.64 0.15 293 / 0.30)" },
+  blue:  { acc:"oklch(0.65 0.13 250)", acc2:"oklch(0.57 0.14 252)", soft:"oklch(0.65 0.13 250 / 0.12)", line:"oklch(0.65 0.13 250 / 0.30)" },
+  green: { acc:"oklch(0.70 0.13 155)", acc2:"oklch(0.62 0.14 155)", soft:"oklch(0.70 0.13 155 / 0.12)", line:"oklch(0.70 0.13 155 / 0.30)" },
+  red:   { acc:"oklch(0.64 0.16 25)",  acc2:"oklch(0.56 0.17 25)",  soft:"oklch(0.64 0.16 25 / 0.12)",  line:"oklch(0.64 0.16 25 / 0.30)" },
 };
 
 function App() {
@@ -35,7 +35,6 @@ function App() {
     r.style.setProperty("--acc-2",    a.acc2);
     r.style.setProperty("--acc-soft", a.soft);
     r.style.setProperty("--acc-line", a.line);
-    r.style.setProperty("--acc-glow", a.glow);
   }, [t.accent]);
 
   if (view === "dashboard" && auth.email) {
@@ -49,9 +48,6 @@ function App() {
 
   return (
     <div>
-      <div className="bg-lines" />
-      <div className="grain" />
-
       <nav className="nav">
         <div className="shell nav-inner">
           <div className="brand">

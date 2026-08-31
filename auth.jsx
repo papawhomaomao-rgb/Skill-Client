@@ -100,9 +100,9 @@ function clerkModalAppearance() {
       fontSize: "14px",
     },
     elements: {
-      modalBackdrop: { background: "oklch(0.04 0.01 290 / 0.82)", backdropFilter: "blur(10px)" },
-      modalContent: { boxShadow: "0 40px 90px -24px oklch(0 0 0 / 0.8)" },
-      cardBox: { background: surface, border: `1px solid ${t.line}`, borderRadius: "16px", boxShadow: "0 40px 90px -24px oklch(0 0 0 / 0.8)", overflow: "hidden" },
+      modalBackdrop: { background: "oklch(0.08 0 0 / 0.72)" },
+      modalContent: { boxShadow: "0 16px 40px -16px oklch(0 0 0 / 0.6)" },
+      cardBox: { background: surface, border: `1px solid ${t.line}`, borderRadius: "12px", boxShadow: "0 16px 40px -16px oklch(0 0 0 / 0.6)", overflow: "hidden" },
       card: { background: surface, boxShadow: "none", border: "none" },
       navbar: { background: surfaceAlt, borderRight: `1px solid ${t.line}`, backgroundImage: "none" },
       navbarButton: { color: t.fg2, "&:hover": { background: "oklch(1 0 0 / 0.05)", color: t.fg } },
@@ -226,8 +226,7 @@ function AuthModal({ open, mode, onClose, auth }) {
   return (
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, zIndex: 200,
-      background: "oklch(0.04 0.01 290 / 0.82)",
-      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      background: "oklch(0.08 0 0 / 0.72)",
       display: "grid", placeItems: "center", padding: 24,
       animation: "auth-fade .18s ease",
     }}>
@@ -239,15 +238,15 @@ function AuthModal({ open, mode, onClose, auth }) {
 
       <div onClick={(e) => e.stopPropagation()} style={{
         width: "100%", maxWidth: 400, padding: "28px 28px 24px",
-        borderRadius: 16, position: "relative",
-        background: "linear-gradient(180deg,oklch(0.115 0.018 292),oklch(0.082 0.014 292))",
+        borderRadius: 12, position: "relative",
+        background: "var(--bg-1)",
         border: "1px solid var(--line-2)",
-        boxShadow: "0 40px 90px -24px oklch(0 0 0 / 0.75)",
+        boxShadow: "var(--sh-4)",
         animation: "auth-rise .22s cubic-bezier(.2,.8,.2,1)",
       }}>
         <button onClick={onClose} aria-label="Close" style={{
           position: "absolute", top: 14, right: 14, width: 28, height: 28,
-          borderRadius: 8, border: "1px solid var(--line-2)", color: "var(--fg-3)",
+          borderRadius: 6, border: "1px solid var(--line-2)", color: "var(--fg-3)",
           display: "grid", placeItems: "center",
         }}>
           <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 10, height: 10 }}>
@@ -262,7 +261,7 @@ function AuthModal({ open, mode, onClose, auth }) {
               {isSignUp ? "Create your account" : "Sign in to Skilled"}
             </span>
             <span style={{ fontSize: 12, color: "var(--fg-3)" }}>
-              {isSignUp ? "One account links your devices." : "Welcome back."}
+              {isSignUp ? "One account, one device." : "Welcome back."}
             </span>
           </div>
         </div>
@@ -298,9 +297,9 @@ function UserMenu({ auth, onDashboard }) {
     <div data-user-menu style={{ position: "relative" }}>
       <button onClick={() => setOpen(v => !v)} className="btn btn-ghost" style={{ height: 36, padding: "0 8px 0 5px", gap: 8 }}>
         {auth.avatar ? (
-          <img src={auth.avatar} alt="" style={{ width: 26, height: 26, borderRadius: 7, objectFit: "cover", flexShrink: 0 }} />
+          <img src={auth.avatar} alt="" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
         ) : (
-          <span style={{ width: 26, height: 26, borderRadius: 7, background: "var(--acc)", color: "oklch(0.13 0.02 300)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>{initials}</span>
+          <span style={{ width: 26, height: 26, borderRadius: 6, background: "var(--bg-2)", border: "1px solid var(--line-2)", color: "var(--fg-1)", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>{initials}</span>
         )}
         <span style={{ fontSize: 13.5, fontWeight: 500, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{auth.name}</span>
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 10, height: 10, opacity: .55, transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}>
@@ -311,8 +310,8 @@ function UserMenu({ auth, onDashboard }) {
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 8px)", right: 0, width: 236, padding: 7, zIndex: 100,
-          borderRadius: 13, background: "linear-gradient(180deg,oklch(0.115 0.018 292),oklch(0.088 0.014 292))",
-          border: "1px solid var(--line-2)", boxShadow: "0 24px 56px -18px oklch(0 0 0 / 0.7)",
+          borderRadius: 10, background: "var(--bg-1)",
+          border: "1px solid var(--line-2)", boxShadow: "var(--sh-4)",
           animation: "auth-rise .16s ease",
         }}>
           <div style={{ padding: "9px 11px 11px", borderBottom: "1px solid var(--line)", marginBottom: 5 }}>

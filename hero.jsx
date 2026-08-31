@@ -19,7 +19,7 @@ function SidebarIcon({ name, active }) {
 
 function GuiToggle({ on }) {
   return (
-    <div style={{ width: 30, height: 17, borderRadius: 10, flexShrink: 0, position: "relative", background: on ? "var(--acc)" : "oklch(1 0 0 / 0.07)", boxShadow: on ? "0 0 12px -2px var(--acc-glow)" : "none", transition: "background .18s" }}>
+    <div style={{ width: 30, height: 17, borderRadius: 10, flexShrink: 0, position: "relative", background: on ? "var(--acc)" : "oklch(1 0 0 / 0.09)", transition: "background .18s" }}>
       <div style={{ position: "absolute", top: 2.5, left: on ? 15.5 : 2.5, width: 12, height: 12, borderRadius: "50%", background: on ? "oklch(1 0 0)" : "oklch(0.44 0 0)", transition: "left .18s" }} />
     </div>
   );
@@ -27,8 +27,8 @@ function GuiToggle({ on }) {
 
 function GuiModuleCard({ name, desc, on }) {
   return (
-    <div style={{ padding: "11px 13px", borderRadius: 11, background: on ? "oklch(1 0 0 / 0.045)" : "oklch(1 0 0 / 0.022)", border: `1px solid ${on ? "var(--acc-line)" : "var(--line-2)"}`, display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-      <div style={{ width: 27, height: 27, borderRadius: 8, background: on ? "var(--acc-soft)" : "oklch(1 0 0 / 0.04)", border: `1px solid ${on ? "var(--acc-line)" : "var(--line-2)"}`, display: "grid", placeItems: "center", flexShrink: 0 }}>
+    <div style={{ padding: "11px 13px", borderRadius: 9, background: on ? "oklch(1 0 0 / 0.045)" : "oklch(1 0 0 / 0.022)", border: `1px solid ${on ? "var(--acc-line)" : "var(--line-2)"}`, display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
+      <div style={{ width: 27, height: 27, borderRadius: 7, background: on ? "var(--acc-soft)" : "oklch(1 0 0 / 0.04)", border: `1px solid ${on ? "var(--acc-line)" : "var(--line-2)"}`, display: "grid", placeItems: "center", flexShrink: 0 }}>
         <svg viewBox="0 0 12 12" fill="none" stroke={on ? "var(--acc)" : "var(--fg-3)"} strokeWidth="1.2" style={{ width: 11, height: 11 }}>
           <circle cx="6" cy="6" r="3.6"/><circle cx="6" cy="6" r="1" fill={on ? "var(--acc)" : "var(--fg-3)"}/>
         </svg>
@@ -65,10 +65,10 @@ function ClickGuiShot() {
   return (
     <div className="frame" style={{ display: "grid", gridTemplateColumns: "204px 1fr", minHeight: 470 }}>
       {/* sidebar */}
-      <div style={{ borderRight: "1px solid var(--line)", padding: 16, display: "flex", flexDirection: "column", background: "oklch(0.075 0.016 292 / 0.6)" }}>
+      <div style={{ borderRight: "1px solid var(--line)", padding: 16, display: "flex", flexDirection: "column", background: "oklch(1 0 0 / 0.015)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "4px 4px 18px", borderBottom: "1px solid var(--line)", marginBottom: 16 }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", border: "1.5px solid var(--acc-line)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--acc)", boxShadow: "0 0 10px var(--acc-glow)" }} />
+          <div style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid var(--line-3)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+            <div style={{ width: 10, height: 10, borderRadius: 3, background: "var(--acc)" }} />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, letterSpacing: "-.015em" }}>Skilled</span>
@@ -78,12 +78,12 @@ function ClickGuiShot() {
         <span className="label" style={{ fontSize: 10, paddingLeft: 4, marginBottom: 9 }}>Menu</span>
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {nav.map(i => (
-            <div key={i.name} style={{ height: 34, padding: "0 11px", borderRadius: 9, display: "flex", alignItems: "center", gap: 10, background: i.active ? "oklch(1 0 0 / 0.055)" : "transparent", color: i.active ? "var(--fg)" : "var(--fg-2)", fontSize: 13, fontWeight: i.active ? 600 : 500, letterSpacing: "-.012em" }}>
+            <div key={i.name} style={{ height: 32, padding: "0 11px", borderRadius: 7, display: "flex", alignItems: "center", gap: 10, background: i.active ? "oklch(1 0 0 / 0.055)" : "transparent", color: i.active ? "var(--fg)" : "var(--fg-2)", fontSize: 13, fontWeight: i.active ? 600 : 500, letterSpacing: "-.012em" }}>
               <SidebarIcon name={i.icon} active={i.active} />{i.name}
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 11, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line-2)", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 8, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line-2)", display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 7, height: 7, borderRadius: "50%", background: "oklch(0.74 0.19 148)", flexShrink: 0 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <span style={{ fontSize: 12, fontWeight: 600 }}>Offline</span>
@@ -99,7 +99,7 @@ function ClickGuiShot() {
             <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: "-.02em", marginBottom: 4 }}>Modules</div>
             <div style={{ fontSize: 12.5, color: "var(--fg-3)" }}>Toggle, configure, manage features</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 32, width: 172, borderRadius: 9, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 30, width: 172, borderRadius: 7, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", flexShrink: 0 }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="var(--fg-3)" strokeWidth="1.4" style={{ width: 12, height: 12 }}><circle cx="7" cy="7" r="4.5"/><path d="m11 11 3 3"/></svg>
             <span style={{ fontSize: 12.5, color: "var(--fg-3)" }}>Search…</span>
           </div>
@@ -107,7 +107,7 @@ function ClickGuiShot() {
 
         <div style={{ display: "flex", gap: 7, marginBottom: 18, flexWrap: "wrap" }}>
           {tabs.map(t => (
-            <div key={t.name} style={{ padding: "5px 11px", borderRadius: 7, background: t.active ? "var(--acc-soft)" : "transparent", border: `1px solid ${t.active ? "var(--acc-line)" : "var(--line-2)"}`, color: t.active ? "var(--acc)" : "var(--fg-2)", fontSize: 12, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+            <div key={t.name} style={{ padding: "5px 11px", borderRadius: 6, background: t.active ? "var(--acc-soft)" : "transparent", border: `1px solid ${t.active ? "var(--acc-line)" : "var(--line-2)"}`, color: t.active ? "var(--acc)" : "var(--fg-2)", fontSize: 12, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
               {t.name}<span style={{ opacity: .6 }}>{t.count}</span>
             </div>
           ))}
@@ -132,13 +132,13 @@ function HudModuleList() {
   const active = ["Right Clicker", "Trajectories", "AutoClicker", "Auto Sprint", "Player ESP", "AimAssist", "Scaffold", "Freelook", "NameTags", "Antibot", "W-Tap"];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 12px", background: "oklch(0.06 0.014 290 / 0.92)", border: "1px solid var(--acc-line)", borderRadius: 14, boxShadow: "0 2px 12px oklch(0 0 0 / 0.5)" }}>
-        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--acc)", boxShadow: "0 0 7px var(--acc-glow)" }} />
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 12px", background: "var(--bg-2)", border: "1px solid var(--line-2)", borderRadius: 7 }}>
+        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--acc)" }} />
         <span style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: "-.012em" }}>Skilled</span>
         <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)" }}>{active.length}</span>
       </div>
       {active.map(m => (
-        <div key={m} style={{ padding: "5px 13px", background: "oklch(0.06 0.014 290 / 0.9)", border: "1px solid var(--line-2)", borderRadius: 14, fontSize: 12.5, fontWeight: 500, letterSpacing: "-.012em", color: "var(--fg-1)", boxShadow: "0 2px 8px oklch(0 0 0 / 0.4)" }}>{m}</div>
+        <div key={m} style={{ padding: "5px 13px", background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 7, fontSize: 12.5, fontWeight: 500, letterSpacing: "-.012em", color: "var(--fg-1)" }}>{m}</div>
       ))}
     </div>
   );
@@ -150,18 +150,17 @@ function Hero() {
   return (
     <section style={{ padding: "84px 0 0", position: "relative" }}>
       <div className="shell">
-        <div className="rise" style={{ maxWidth: 780, margin: "0 auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div className="rise" style={{ maxWidth: 880, margin: "0 auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
           <span className="pill" style={{ marginBottom: 26 }}>
             <span className="dot" />Version 1.0 is out now
           </span>
 
-          <h1 className="h-display grad-txt">
-            The ghost client<br/>built for 1.8&nbsp;PvP.
+          <h1 className="h-display">
+            The cheapest and most undetectable client on the market.
           </h1>
 
           <p className="lead" style={{ maxWidth: 540 }}>
-            Fourteen tuned modules, cloud-synced configs, and a scripting API —
-            wrapped in an interface that stays out of your way. One licence, every module.
+            Built for subtle advantages allowing skill into your gameplay.
           </p>
 
           <div style={{ display: "flex", gap: 10, marginTop: 32, flexWrap: "wrap", justifyContent: "center" }}>
@@ -173,12 +172,11 @@ function Hero() {
           </div>
 
           <p className="small dim" style={{ marginTop: 18 }}>
-            Windows, macOS and Linux · Minecraft 1.8.9 and 1.7.10
+            Windows · Minecraft 1.8.9 and 1.7.10
           </p>
         </div>
 
         <div className="rise" style={{ position: "relative", marginTop: 72, animationDelay: ".12s" }}>
-          <div className="glow-under" />
           <ClickGuiShot />
         </div>
       </div>
@@ -189,7 +187,7 @@ function Hero() {
             { k: "14", v: "Modules, all included" },
             { k: "Lua", v: "Scripting API" },
             { k: "1.8.9 / 1.7.10", v: "Supported versions" },
-            { k: "3 devices", v: "Per account, cloud synced" },
+            { k: "1 device", v: "Per account, cloud synced" },
           ].map(s => (
             <div key={s.v}>
               <span className="k">{s.k}</span>

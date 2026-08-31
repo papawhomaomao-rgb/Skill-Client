@@ -15,8 +15,8 @@ function FeatureIcon({ name }) {
 
 function Features() {
   const cards = [
-    { icon: "gui",    title: "An interface that respects you", body: "Search-first navigation, keyboard shortcuts for every action, and a module list you can read at a glance. No animation gimmicks, no glow that gives you away in a screenshare.", meta: "Right Shift to open" },
-    { icon: "cloud",  title: "Configs that follow you around", body: "Every profile you save syncs the moment you save it. Sign in on another machine and your setup is already there — or hand a friend a link and they pull it on launch.", meta: "Up to 3 devices" },
+    { icon: "gui",    title: "An interface that respects you", body: "Search-first navigation, keyboard shortcuts for every action, and a module list you can read at a glance. No animation gimmicks, nothing on screen that gives you away in a screenshare.", meta: "Right Shift to open" },
+    { icon: "cloud",  title: "Configs that follow you around", body: "Every profile you save syncs the moment you save it. Reinstall Windows, move to a new PC, or hand a friend a link — your setup is there the next time you launch.", meta: "One device per account" },
     { icon: "script", title: "A real scripting API",           body: "Write your own modules in JavaScript against the same API the built-in ones use. Hot-reload while the game runs, no recompile and no restart.", meta: "JavaScript, hot-reloaded" },
   ];
 
@@ -32,7 +32,7 @@ function Features() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(288px,1fr))", gap: 16 }}>
           {cards.map(c => (
             <div key={c.title} className="card card-hover pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 11, background: "var(--acc-soft)", border: "1px solid var(--acc-line)", display: "grid", placeItems: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center" }}>
                 <FeatureIcon name={c.icon} />
               </div>
               <h3 className="h3">{c.title}</h3>
@@ -54,7 +54,7 @@ function Features() {
               <span className="tag tag-flat">Per-screen visibility</span>
             </div>
           </div>
-          <div style={{ padding: 32, display: "flex", justifyContent: "flex-end", alignItems: "flex-start", borderLeft: "1px solid var(--line)", background: "radial-gradient(120% 90% at 100% 0%,oklch(0.16 0.08 305 / 0.4),transparent 62%)", minHeight: 400 }}>
+          <div style={{ padding: 32, display: "flex", justifyContent: "flex-end", alignItems: "flex-start", borderLeft: "1px solid var(--line)", background: "oklch(0 0 0 / 0.18)", minHeight: 400 }}>
             <HudModuleList />
           </div>
         </div>
@@ -125,8 +125,8 @@ function ModuleBrowser() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(268px,1fr))", gap: 12 }}>
           {filtered.map(m => (
-            <div key={m.name} className="card card-hover" style={{ padding: "16px 18px", display: "flex", alignItems: "center", gap: 13, borderRadius: 13 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+            <div key={m.name} className="card card-hover" style={{ padding: "15px 17px", display: "flex", alignItems: "center", gap: 13 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center", flexShrink: 0 }}>
                 <svg viewBox="0 0 12 12" fill="none" stroke="var(--fg-2)" strokeWidth="1.2" style={{ width: 12, height: 12 }}>
                   <circle cx="6" cy="6" r="3.6"/><circle cx="6" cy="6" r="1" fill="var(--fg-2)"/>
                 </svg>
@@ -136,7 +136,7 @@ function ModuleBrowser() {
                 <span style={{ fontSize: 12.5, color: "var(--fg-3)" }}>{m.desc}</span>
               </div>
               {m.kbd !== "—" && (
-                <span className="mono" style={{ fontSize: 11, color: "var(--acc)", background: "var(--acc-soft)", border: "1px solid var(--acc-line)", borderRadius: 6, padding: "3px 7px", flexShrink: 0 }}>{m.kbd}</span>
+                <span className="mono" style={{ fontSize: 11, color: "var(--acc)", background: "var(--acc-soft)", border: "1px solid var(--acc-line)", borderRadius: 5, padding: "3px 7px", flexShrink: 0 }}>{m.kbd}</span>
               )}
             </div>
           ))}
@@ -156,7 +156,7 @@ function ModuleBrowser() {
 const CHANGELOG = [
   { v: "1.0.4", tag: "Latest", items: ["Antibot retuned for ranked Bedwars lobbies", "Cloud configs resolve faster on a cold launch", "Fixed a Scaffold desync after teleporting"] },
   { v: "1.0.2", tag: null,     items: ["Cloud — share a profile with a short link", "Command palette, opens with ⌘K anywhere", "Reach now tunes per game mode"] },
-  { v: "1.0.1", tag: null,     items: ["Signed the macOS build", "Rewrote the AimAssist smoothing curve"] },
+  { v: "1.0.1", tag: null,     items: ["Signed the Windows installer", "Rewrote the AimAssist smoothing curve"] },
   { v: "1.0.0", tag: "Initial",items: ["Clutch — auto-places to prevent fatal falls", "Drag-and-drop HUD editor", "Scaffold speedbridge timing"] },
 ];
 
@@ -182,7 +182,7 @@ function Changelog() {
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
                 {c.items.map((it, j) => (
                   <li key={j} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 10, fontSize: 14.5, lineHeight: 1.55, color: "var(--fg-1)" }}>
-                    <span className="mono" style={{ color: "var(--acc)", fontSize: 13 }}>+</span>{it}
+                    <span className="mono" style={{ color: "var(--fg-3)", fontSize: 13 }}>+</span>{it}
                   </li>
                 ))}
               </ul>
@@ -200,17 +200,13 @@ function PlatformIcon({ name }) {
   const p = { viewBox: "0 0 20 20", fill: "none", stroke: "var(--fg-1)", strokeWidth: 1.4, style: { width: 20, height: 20 } };
   switch (name) {
     case "win":   return <svg {...p}><rect x="2.5" y="3" width="6" height="6" rx=".8"/><rect x="11.5" y="3" width="6" height="6" rx=".8"/><rect x="2.5" y="11" width="6" height="6" rx=".8"/><rect x="11.5" y="11" width="6" height="6" rx=".8"/></svg>;
-    case "mac":   return <svg {...p}><path d="M13.6 7c-1.3 0-2.5.7-3.2 1.6C9.7 7.7 8.5 7 7.2 7 5 7 3.2 8.9 3.2 11.4c0 3.1 3.1 6.2 6.9 6.2s6.9-3.1 6.9-6.2C17 8.9 15.8 7 13.6 7Z"/><path d="M11 5.5c0-1.7 1.2-3 2.6-3"/></svg>;
-    case "linux": return <svg {...p}><ellipse cx="10" cy="7.5" rx="3.6" ry="4.8"/><circle cx="8.6" cy="6.4" r=".7" fill="var(--fg-1)"/><circle cx="11.4" cy="6.4" r=".7" fill="var(--fg-1)"/><path d="M6.4 12.4c-1.2 2.4-2.4 4.8-1.2 5.4 1.2.6 2.4-.6 3.6-.6s2.4 1.2 3.6.6c1.2-.6-1.2-3-2.4-5.4"/></svg>;
     default: return null;
   }
 }
 
 function Pricing() {
   const platforms = [
-    { os: "Windows", ver: "10 and 11, 64-bit",       file: "skilled-setup.exe",      ic: "win" },
-    { os: "macOS",   ver: "12 Monterey or newer",    file: "skilled-setup.dmg",      ic: "mac" },
-    { os: "Linux",   ver: "Ubuntu, Arch and Fedora", file: "skilled-setup.AppImage", ic: "linux" },
+    { os: "Windows", ver: "10 and 11, 64-bit", file: "skilled-setup.exe", ic: "win" },
   ];
   return (
     <section id="download" className="sec" style={{ paddingTop: 0 }}>
@@ -218,14 +214,14 @@ function Pricing() {
         <div className="sec-head center">
           <span className="eyebrow" style={{ justifyContent: "center" }}><span className="bead" />Download</span>
           <h2 className="h2">Every module, one licence.</h2>
-          <p className="lead">No tiers, no paywalled modules, no nag screens. Create an account to link your devices and sync your configs, then run the installer for your platform.</p>
+          <p className="lead">No tiers, no paywalled modules, no nag screens. Create an account, link your device, then run the installer.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14, maxWidth: 1000, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14, maxWidth: 460, margin: "0 auto" }}>
           {platforms.map(p => (
             <a key={p.os} href="#" className="card card-hover pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: "oklch(1 0 0 / 0.045)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 8, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center", flexShrink: 0 }}>
                   <PlatformIcon name={p.ic} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -250,15 +246,15 @@ function Pricing() {
 
 function Discord() {
   const msgs = [
-    { u: "ven",   ch: "announcements",   t: "12m", c: "var(--acc)",              msg: "1.0.4 is live. Antibot retuned, configs unaffected." },
-    { u: "kael",  ch: "configs-bedwars", t: "1h",  c: "oklch(0.76 0.14 210)",    msg: "Uploaded ranked-bw-v4 — slower attack, tighter strafe." },
-    { u: "miso",  ch: "bug-reports",     t: "3h",  c: "oklch(0.82 0.14 82)",     msg: "Scaffold drift on Lunar, server #42. Looking now." },
-    { u: "rin",   ch: "general",         t: "5h",  c: "oklch(0.76 0.15 350)",    msg: "Freelook alone is worth the install." },
+    { u: "ven",   ch: "announcements",   t: "12m", c: "var(--fg)",   msg: "1.0.4 is live. Antibot retuned, configs unaffected." },
+    { u: "kael",  ch: "configs-bedwars", t: "1h",  c: "var(--fg-1)", msg: "Uploaded ranked-bw-v4 — slower attack, tighter strafe." },
+    { u: "miso",  ch: "bug-reports",     t: "3h",  c: "var(--fg-1)", msg: "Scaffold drift on Lunar, server #42. Looking now." },
+    { u: "rin",   ch: "general",         t: "5h",  c: "var(--fg-1)", msg: "Freelook alone is worth the install." },
   ];
   return (
     <section id="discord" className="sec" style={{ paddingTop: 0 }}>
       <div className="shell">
-        <div className="card card-hi" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", overflow: "hidden" }}>
+        <div className="card" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", overflow: "hidden" }}>
           <div style={{ padding: "44px 40px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
             <span className="eyebrow" style={{ margin: 0 }}><span className="bead" />Community</span>
             <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Support happens in Discord.</h2>
@@ -268,9 +264,9 @@ function Discord() {
               Join the Discord
             </a>
           </div>
-          <div style={{ borderLeft: "1px solid var(--line)", padding: 24, display: "flex", flexDirection: "column", gap: 10, background: "oklch(0.07 0.014 292 / 0.5)" }}>
+          <div style={{ borderLeft: "1px solid var(--line)", padding: 24, display: "flex", flexDirection: "column", gap: 10, background: "oklch(0 0 0 / 0.18)" }}>
             {msgs.map((m, i) => (
-              <div key={i} style={{ padding: "13px 15px", borderRadius: 12, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 5 }}>
+              <div key={i} style={{ padding: "13px 15px", borderRadius: 8, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 5 }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: m.c }}>{m.u}</span>
                   <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)" }}>#{m.ch}</span>
@@ -289,11 +285,11 @@ function Discord() {
 /* ═══════════ FAQ ═══════════ */
 
 const FAQS = [
-  { q: "How does licensing work?", a: "One licence covers your account. Every module is included — there are no tiers and no premium-only features. Sign in on the website, approve your launcher once, and the licence follows you to any machine you link." },
+  { q: "How does licensing work?", a: "One licence covers your account. Every module is included — there are no tiers and no premium-only features. Sign in on the website, approve your launcher once, and the licence is tied to that machine." },
   { q: "Is it detectable on Hypixel?", a: "No client is permanently undetected, and anyone who tells you otherwise is selling something. We rebuild the detection-sensitive parts regularly and patch quickly when a wave lands. Treat any client as a risk to the account you use it on." },
-  { q: "Which versions are supported?", a: "Minecraft 1.8.9 and 1.7.10, across Vanilla, Forge, LabyMod, Lunar and Badlion (not BAC). Those are where the competitive scene still plays, so that's where we focus." },
-  { q: "Do I need an account?", a: "Yes — the account links your devices and powers config sync. Signup takes about thirty seconds and needs nothing but an email address." },
-  { q: "Can I share my account?", a: "No. One account covers three of your own devices. Sharing is detected automatically and gets the account revoked." },
+  { q: "Which versions are supported?", a: "Minecraft 1.8.9 and 1.7.10 on Windows, across Vanilla, Forge, LabyMod, Lunar and Badlion (not BAC). Those are where the competitive scene still plays, so that's where we focus." },
+  { q: "Do I need an account?", a: "Yes — the account links your device and powers config sync. Signup takes about thirty seconds and needs nothing but an email address." },
+  { q: "Can I share my account?", a: "No. One account, one device. Sharing is detected automatically and gets the account revoked." },
 ];
 
 function FAQ() {
@@ -311,9 +307,9 @@ function FAQ() {
             const isOpen = open === i;
             return (
               <div key={i} style={{ borderTop: i === 0 ? "none" : "1px solid var(--line)" }}>
-                <button onClick={() => setOpen(isOpen ? -1 : i)} style={{ width: "100%", padding: "22px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, textAlign: "left", fontSize: 16.5, fontWeight: 600, letterSpacing: "-.018em", color: isOpen ? "var(--fg)" : "var(--fg-1)" }}>
+                <button onClick={() => setOpen(isOpen ? -1 : i)} style={{ width: "100%", padding: "22px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24, textAlign: "left", fontSize: 16, fontWeight: 600, letterSpacing: "-.016em", color: isOpen ? "var(--fg)" : "var(--fg-1)" }}>
                   {it.q}
-                  <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 8, border: `1px solid ${isOpen ? "var(--acc-line)" : "var(--line-2)"}`, background: isOpen ? "var(--acc-soft)" : "transparent", color: isOpen ? "var(--acc)" : "var(--fg-3)", display: "grid", placeItems: "center", transform: isOpen ? "rotate(45deg)" : "none", transition: "all .2s" }}>
+                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: 6, border: `1px solid ${isOpen ? "var(--acc-line)" : "var(--line-2)"}`, background: isOpen ? "var(--acc-soft)" : "transparent", color: isOpen ? "var(--acc)" : "var(--fg-3)", display: "grid", placeItems: "center", transform: isOpen ? "rotate(45deg)" : "none", transition: "all .2s" }}>
                     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width: 11, height: 11 }}><path d="M6 1v10M1 6h10"/></svg>
                   </span>
                 </button>

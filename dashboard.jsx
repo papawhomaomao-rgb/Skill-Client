@@ -26,8 +26,8 @@ function DashShell({ auth, onLeave, tab, setTab, tabs, children }) {
         <div className="dash-side-brand">
           <div className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>S</div>
           <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-            <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: "-0.02em" }}>Skill</span>
-            <span className="mono" style={{ fontSize: 9, color: "var(--fg-3)", letterSpacing: "0.18em", marginTop: 3 }}>
+            <span style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.02em" }}>Skill</span>
+            <span className="mono" style={{ fontSize: 9.5, color: "var(--fg-3)", letterSpacing: "0.11em", marginTop: 3 }}>
               {auth.role === "dev" ? "DEVELOPER" : "ACCOUNT"}
             </span>
           </div>
@@ -212,7 +212,7 @@ function UserLicense({ email }) {
         <div className="dash-card">
           <span className="dash-label">Entitlements</span>
           <ul style={{ margin: "14px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-            {["All current & future modules", "ConfigCloud · 3 devices", "Weekly updates", "Self Destruct", "Discord access"].map(x => (
+            {["All current & future modules", "ConfigCloud · 1 device", "Weekly updates", "Self Destruct", "Discord access"].map(x => (
               <li key={x} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: "var(--fg-1)" }}>
                 <span className="check" />{x}
               </li>
@@ -227,11 +227,10 @@ function UserLicense({ email }) {
 function UserDevices() {
   const devices = [
     { name: "DESKTOP-9F2K1L", os: "Windows 11", last: "now", active: true },
-    { name: "MacBook Air",    os: "macOS 14.4", last: "3d ago", active: false },
   ];
   return (
     <>
-      <DashHead title="Devices" sub="HWID-locked machines. Up to 3 active." />
+      <DashHead title="Device" sub="HWID-locked machine. One device per account." />
       <div className="dash-card" style={{ padding: 0 }}>
         <table className="dash-table">
           <thead><tr><th>Machine</th><th>OS</th><th>Last seen</th><th>Status</th><th></th></tr></thead>
@@ -248,7 +247,7 @@ function UserDevices() {
             <tr>
               <td colSpan="5" style={{ color: "var(--fg-3)", fontSize: 13 }}>
                 <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                  + Slot 3 available · runs <code>skill-setup.exe</code> on a new machine to claim it
+                  Unlink to move your licence — then run <code>skill-setup.exe</code> on the new machine
                 </span>
               </td>
             </tr>
@@ -588,7 +587,7 @@ function Stat({ label, value, subtle, accent }) {
       <span className="dash-label">{label}</span>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 10 }}>
         <span style={{
-          fontSize: 36, fontWeight: 700, letterSpacing: "-0.04em",
+          fontSize: 30, fontWeight: 600, letterSpacing: "-0.028em",
           color: accent ? "var(--acc)" : "var(--fg)",
         }}>{value}</span>
         {subtle && <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)" }}>{subtle}</span>}

@@ -53,8 +53,6 @@ function Countdown({ until }) {
 function Shell({ children, footer }) {
   return (
     <>
-      <div className="bg-lines" />
-      <div className="grain" />
       <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "48px 24px" }}>
         <div style={{ width: "100%", maxWidth: 520 }}>
           <a href="index.html" className="brand" style={{ marginBottom: 26, display: "inline-flex" }}>
