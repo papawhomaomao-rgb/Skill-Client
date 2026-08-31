@@ -11,6 +11,79 @@ export class AuthError extends Error {
 
 const bearer = request => (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
 
+/* ── who is a developer ──────────────────────────────────────────────────────
+
+   Two ways in, and the second one is why this block exists.
+
+   1. Clerk public_metadata.role === "dev". Granted by hand in the Clerk
+      dashboard, per account, and invisible from this repo.
+
+   2. DEV_EMAILS in wrangler.toml — a comma-separated allowlist of verified
+      email addresses.
+
+   (1) alone was the original design and it left the dev dashboard permanently
+   unreachable: every piece of the developer UI was built and wired, but no
+   account anywhere had the metadata key set, so `role` was "user" for
+   everybody and DevDashboard never rendered. Worse, it is state that lives
+   only in someone else's console — nothing in the repo records who is staff,
+   and a wiped metadata field silently locks the owner out of their own
+   broadcast tools.
+
+   (2) fixes both: the roster is versioned, reviewable, and restored by a
+   redeploy. (1) is kept as the escape hatch for granting dev to someone
+   without a deploy.
+
+   VERIFIED is load-bearing. The check is against addresses Clerk has confirmed
+   the account actually controls, never a self-asserted one — otherwise signing
+   up with an unclaimed allowlisted address would hand over staff. */
+const devEmails = env =>
+  String(env.DEV_EMAILS || "")
+    .split(",")
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean);
+
+/* Lowercased addresses Clerk has verified for this account. Unverified rows
+   are dropped rather than returned for the caller to filter — the one caller
+   that matters must not be able to forget. */
+function verifiedEmailsOf(profile) {
+  if (!profile || !Array.isArray(profile.email_addresses)) return [];
+  return profile.email_addresses
+    .filter(e => e?.verification?.status === "verified" && e.email_address)
+    .map(e => e.email_address.toLowerCase());
+}
+
+/* The real predicate. Takes the user object from requireUser().
+
+   Note that requireUser().role reports only what the TOKEN asserts, because
+   resolving the allowlist costs a Clerk Backend API call and every authorised
+   request would pay it. So `role` is deliberately not the answer to "is this
+   person staff" — this function is. Do not reintroduce `user.role === "dev"`
+   as a gate; it silently ignores route (2) above.
+
+   Ordered cheapest first: metadata needs nothing, the JWT email needs nothing
+   (present only if a JWT template adds it — most tokens here carry neither),
+   and only then does it go to the network. */
+export async function isDev(env, user) {
+  if (!user || !user.userId) return false;
+  if (user.role === "dev") return true;
+
+  const allow = devEmails(env);
+  if (!allow.length) return false;
+  if (user.email && allow.includes(String(user.email).toLowerCase())) return true;
+
+  const profile = await userProfile(env, user.userId);
+  return verifiedEmailsOf(profile).some(e => allow.includes(e));
+}
+
+/* Roster-shaped variant: decides the role column in the dev dashboard from a
+   Clerk user record that is already in hand, with no further API calls. */
+export function roleOfClerkUser(env, u) {
+  if (u?.public_metadata?.role === "dev") return "dev";
+  const allow = devEmails(env);
+  if (allow.length && verifiedEmailsOf(u).some(e => allow.includes(e))) return "dev";
+  return u?.public_metadata?.role || "user";
+}
+
 /* A Clerk session token. Sent by the website and by link.html on approve/deny. */
 export async function requireUser(request, env) {
   const token = bearer(request);
@@ -89,8 +162,10 @@ export function primaryEmailOf(profile) {
 
 export async function requireDev(request, env) {
   const u = await requireUser(request, env);
-  if (u.role !== "dev") throw new AuthError("Forbidden", 403);
-  return u;
+  if (!(await isDev(env, u))) throw new AuthError("Forbidden", 403);
+  // Report the resolved role, not the one the token happened to claim, so a
+  // caller that logs or displays it does not contradict the gate it just passed.
+  return { ...u, role: "dev" };
 }
 
 /* A launcher token (lt_…). Sent by SkilledInjector.exe only. Opaque — the

@@ -1,5 +1,5 @@
 import { json, readJson } from "./http.js";
-import { requireUser, requireDev, clerkUsers } from "./clerk.js";
+import { requireUser, requireDev, clerkUsers, isDev, roleOfClerkUser } from "./clerk.js";
 import { listSessions, revokeSession } from "./sessions.js";
 
 const nowId = () => "an_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -44,7 +44,7 @@ export async function adminUsers(request, env) {
     users.push({
       id: u.id,
       email: u.email_addresses?.[0]?.email_address || null,
-      role: u.public_metadata?.role || "user",
+      role: roleOfClerkUser(env, u),
       createdAt: u.created_at,
       lastSeen: sessions.length ? Math.max(...sessions.map(s => s.last_seen)) : null,
       sessions: sessions.length,
@@ -72,8 +72,10 @@ export async function mySessions(request, env) {
 export async function revoke(request, env, sessionId) {
   const user = await requireUser(request, env);
   const s = await env.SKILLED.get(`sess:${sessionId}`, "json");
-  if (!s || (s.user_id !== user.userId && user.role !== "dev"))
-    return json({ ok: false }, { status: 403, request, env });
+  // Revoking your own device is the common case and stays a single KV read;
+  // only reaching for someone else's pays for the staff check.
+  const allowed = !!s && (s.user_id === user.userId || (await isDev(env, user)));
+  if (!allowed) return json({ ok: false }, { status: 403, request, env });
   await revokeSession(env, sessionId);
   return json({ ok: true }, { request, env });
 }

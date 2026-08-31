@@ -6,6 +6,22 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 const API_URL = "https://skilled-cloud.papawhomaomao.workers.dev";
 
+/* Developer accounts.
+
+   Keep in sync with DEV_EMAILS in worker/wrangler.toml. This copy is cosmetic:
+   it decides whether the browser draws the developer dashboard instead of the
+   buyer one, and nothing more. Every privilege behind that UI — broadcasting,
+   the account roster, revoking someone else's session — is re-checked by the
+   Worker against the same list on its side, so editing this array in devtools
+   gets you an empty dashboard and a wall of 403s, not access.
+
+   Matched case-insensitively against the account's primary email, which Clerk
+   has already verified. */
+const DEV_EMAILS = ["papawhomaomao@gmail.com"];
+
+const isDevEmail = (email) =>
+  !!email && DEV_EMAILS.includes(String(email).trim().toLowerCase());
+
 /* ─────────── Clerk bootstrap ─────────── */
 
 // Resolves once window.Clerk exists and has finished loading.
@@ -162,7 +178,7 @@ function useAuth() {
   }, [clerk]);
 
   const email = user ? (user.primaryEmailAddress?.emailAddress || null) : null;
-  const role = user ? (user.publicMetadata?.role || "user") : null;
+  const role = user ? (isDevEmail(email) ? "dev" : (user.publicMetadata?.role || "user")) : null;
   const name = user ? (user.username || user.firstName || (email ? email.split("@")[0] : null)) : null;
   const avatar = user ? user.imageUrl : null;
 

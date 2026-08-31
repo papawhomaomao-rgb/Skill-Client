@@ -17,6 +17,22 @@ SITE_ORIGIN = "https://skillv1.vercel.app"
 # Comma-separated list of browser origins allowed to call the CORS routes.
 ALLOWED_ORIGINS = "https://skillv1.vercel.app,https://skilled.gg,http://localhost:3000"
 
+# ─── developer accounts ─────────────────────────────────────────────────────
+#
+# Who gets the developer dashboard: broadcasts, the account roster, and the
+# power to revoke anyone's launcher session. Comma-separated, matched against
+# addresses Clerk has VERIFIED for the account — an unverified address never
+# counts, so claiming one of these at sign-up grants nothing.
+#
+# Adding someone is this line plus `npx wrangler deploy`. Removing them is the
+# same edit in reverse; it takes effect on the next request, with no session to
+# hunt down. Clerk public_metadata.role = "dev" still works as a second route
+# in for granting access without a deploy.
+#
+# Mirror this in DEV_EMAILS at the top of ../auth.jsx — that copy only decides
+# whether the browser draws the developer UI. This one is the gate.
+DEV_EMAILS = "papawhomaomao@gmail.com"
+
 # ─── payments ───────────────────────────────────────────────────────────────
 #
 # The gate. While this is anything but "true", every signed-in account passes
