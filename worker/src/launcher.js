@@ -66,11 +66,41 @@ export async function heartbeat(request, env) {
   if (!(await hasEntitlement(env, session.user_id))) return json({ ok: false, reason: "no_license" });
 
   const body = (await readJson(request)) || {};
-  session.last_seen = Date.now();
-  session.injected = !!body.injected;
-  if (body.client_version) session.client_version = String(body.client_version).slice(0, 32);
-  if (body.install_id && !session.install_id) session.install_id = String(body.install_id).slice(0, 64);
-  await saveSession(env, session);
+  const now = Date.now();
+
+  // The launcher heartbeats every 15 SECONDS. Persisting the session on each
+  // one is 4 writes a minute, 240 an hour, 5760 a day -- per running client --
+  // against a free tier that allows 1000 writes a day for the whole account.
+  // One person playing for four hours took the namespace down for everybody,
+  // which is what "KV put() limit exceeded for the day" was.
+  //
+  // Nothing about the heartbeat's PURPOSE needs a write. It exists so a revoke
+  // or a lapsed licence takes effect within fifteen seconds, and both of those
+  // are checks above -- reads, which the free tier grants a hundred times more
+  // of. All the write does is move a last_seen the dashboard displays.
+  //
+  // So: write when something actually changed, or when the stored timestamp
+  // has gone properly stale. Liveness is still accurate to five minutes, the
+  // injected flag still flips immediately, and the cost drops twentyfold.
+  const STALE_MS = 5 * 60 * 1000;
+
+  const injected = !!body.injected;
+  const version = body.client_version ? String(body.client_version).slice(0, 32) : null;
+  const install = body.install_id ? String(body.install_id).slice(0, 64) : null;
+
+  const changed =
+    injected !== session.injected ||
+    (version && version !== session.client_version) ||
+    (install && !session.install_id) ||
+    now - (session.last_seen || 0) > STALE_MS;
+
+  if (changed) {
+    session.last_seen = now;
+    session.injected = injected;
+    if (version) session.client_version = version;
+    if (install && !session.install_id) session.install_id = install;
+    await saveSession(env, session);
+  }
 
   return json({ ok: true });
 }

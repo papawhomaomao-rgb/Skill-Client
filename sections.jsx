@@ -253,7 +253,7 @@ function Discord() {
             <span className="eyebrow" style={{ margin: 0 }}><span className="bead" />Community</span>
             <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Support happens in Discord.</h2>
             <p className="body">Bug reports, shared configs, ranked queues, and direct contact with the people writing the code. Tickets get triaged in minutes, not days.</p>
-            <a href="#" className="btn btn-primary btn-lg" style={{ alignSelf: "flex-start", marginTop: 6 }}>
+            <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg" style={{ alignSelf: "flex-start", marginTop: 6 }}>
               <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 15, height: 15 }}><path d="M13.5 3a13.4 13.4 0 0 0-3.3-1l-.2.3a12 12 0 0 0-4 0l-.2-.3a13.4 13.4 0 0 0-3.3 1A14 14 0 0 0 .3 11a13.5 13.5 0 0 0 4 2l.3-.4a8.6 8.6 0 0 1-1.4-.7c.1-.1.2-.2.3-.2a9.6 9.6 0 0 0 8.2 0l.3.2a8.6 8.6 0 0 1-1.4.7l.4.4a13.5 13.5 0 0 0 4-2 13.9 13.9 0 0 0-2.4-8ZM5.4 9.4c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Zm5.2 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Z"/></svg>
               Join the Discord
             </a>
@@ -294,7 +294,7 @@ function FAQ() {
         <div style={{ position: "sticky", top: 100 }}>
           <span className="eyebrow"><span className="bead" />FAQ</span>
           <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Questions worth answering.</h2>
-          <p className="body" style={{ marginTop: 16, maxWidth: 280 }}>Anything else, ask in Discord — first reply is usually inside fifteen minutes.</p>
+          <p className="body" style={{ marginTop: 16, maxWidth: 280 }}>Anything else, ask in <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-1)", textDecoration: "underline", textUnderlineOffset: 3 }}>Discord</a> — first reply is usually inside fifteen minutes.</p>
         </div>
         <div className="card" style={{ overflow: "hidden" }}>
           {FAQS.map((it, i) => {
@@ -324,7 +324,7 @@ function FAQ() {
 function Footer() {
   const cols = [
     { h: "Product", links: ["Features", "Modules", "Changelog", "Download"] },
-    { h: "Community", links: ["Discord", "YouTube", "X", "TikTok"] },
+    { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
   return (
@@ -342,7 +342,16 @@ function Footer() {
           {cols.map(c => (
             <div key={c.h} className="foot-col">
               <span className="label" style={{ marginBottom: 3 }}>{c.h}</span>
-              {c.links.map(l => <a key={l} href="#">{l}</a>)}
+              {c.links.map(l => {
+                if (typeof l === "string") {
+                  return <a key={l} href="#">{l}</a>;
+                }
+                return (
+                  <a key={l.name} href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}>
+                    {l.name}
+                  </a>
+                );
+              })}
             </div>
           ))}
         </div>

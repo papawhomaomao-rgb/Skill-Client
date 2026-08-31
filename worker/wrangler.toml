@@ -17,4 +17,27 @@ SITE_ORIGIN = "https://skillv1.vercel.app"
 # Comma-separated list of browser origins allowed to call the CORS routes.
 ALLOWED_ORIGINS = "https://skillv1.vercel.app,https://skilled.gg,http://localhost:3000"
 
+# ─── payments ───────────────────────────────────────────────────────────────
+#
+# The gate. While this is anything but "true", every signed-in account passes
+# hasEntitlement() regardless of what is in KV — the launch position from
+# LAUNCHER-AUTH-v1.md, kept so that deploying the payment layer does not lock
+# out existing accounts on the way in.
+#
+# Flip to "true" only once real ent: records are landing from real purchases
+# and anyone who bought earlier has been backfilled. One redeploy to roll back.
+ENTITLEMENT_ENFORCED = "false"
+
+# Which adapter /api/checkout uses when the request does not name one. Empty
+# until a processor is chosen and registered in src/adapters.js; /api/checkout
+# answers 503 not_configured until then, rather than failing at the browser.
+PAYMENT_PROVIDER = ""
+
 # wrangler secret put CLERK_SECRET_KEY
+#
+# Then one key and one webhook secret per provider, whatever it ends up being:
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
+#   wrangler secret put PAYPAL_CLIENT_ID
+#   wrangler secret put PAYPAL_CLIENT_SECRET
+#   wrangler secret put PAYPAL_WEBHOOK_ID

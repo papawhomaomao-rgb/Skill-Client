@@ -13,3 +13,10 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Node / Dependencies
+node_modules/
+**/node_modules/
+.wrangler/
+**/.wrangler/
+

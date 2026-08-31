@@ -32,7 +32,6 @@ export async function start(request, env) {
     client_version: String(body.client_version || "").slice(0, 32) || null,
     created: Date.now(),
     expires: Date.now() + CODE_TTL * 1000,
-    last_poll: 0,
   };
   await save(env, rec);
 
@@ -140,12 +139,21 @@ export async function poll(request, env) {
     return json({ status: "approved", ...grant });
   }
 
-  // Polling faster than interval backs the client off; it does not break it.
-  const now = Date.now();
-  if (rec.last_poll && now - rec.last_poll < POLL_INTERVAL * 1000 - 500)
-    return json({ status: "slow_down", interval: POLL_INTERVAL * 2 });
-
-  rec.last_poll = now;
-  await save(env, rec);
-  return json({ status: "pending" });
+  // Polling is READ-ONLY, deliberately.
+  //
+  // This used to stamp rec.last_poll and save() on every poll, purely to
+  // enforce a client-side backoff. A poll every 5 seconds for the code's full
+  // 10 minute life is 120 KV writes for ONE link attempt, and the free tier
+  // allows 1000 writes a DAY -- so roughly eight abandoned link attempts took
+  // the whole namespace down for everyone until UTC midnight, with every
+  // endpoint that writes failing 500 "KV put() limit exceeded for the day".
+  // The launcher then reported that as "Skilled returned an unusable link
+  // request", which is how a quota problem came to look like a protocol bug.
+  //
+  // The backoff was never worth a write. device_code is single-use and dies in
+  // ten minutes, the client already honours the `interval` it was handed, and
+  // a client that ignores it only burns reads -- which the free tier gives at
+  // a hundred times the rate of writes. If real abuse ever shows up, it
+  // belongs in Cloudflare's own rate limiting, not in the storage bill.
+  return json({ status: "pending", interval: POLL_INTERVAL });
 }

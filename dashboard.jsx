@@ -214,7 +214,12 @@ function UserLicense({ email }) {
           <ul style={{ margin: "14px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
             {["All current & future modules", "ConfigCloud · 1 device", "Weekly updates", "Self Destruct", "Discord access"].map(x => (
               <li key={x} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: "var(--fg-1)" }}>
-                <span className="check" />{x}
+                <span className="check" />
+                {x === "Discord access" ? (
+                  <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-1)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+                    Discord access
+                  </a>
+                ) : x}
               </li>
             ))}
           </ul>

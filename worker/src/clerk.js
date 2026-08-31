@@ -107,6 +107,44 @@ export async function launcherSession(request, env) {
   return { session: sess, rec };
 }
 
+/* Exact username -> user id. Used by config sharing, which names people the way
+   one player names another.
+
+   Deliberately username and nothing else. Falling back to matching an email
+   would turn this into an oracle: anyone could type addresses at it and learn
+   which ones hold an account here, and the caller does not have to know the
+   person for the probe to work. A username is already public — it is the byline
+   on every config they post — so confirming one exists gives nothing away.
+
+   Note that a username is OPTIONAL in this Clerk instance (see displayNameOf,
+   which falls back to a real name and then to the email local-part). An account
+   that never set one simply cannot be shared with, and the caller is told so in
+   those terms rather than being left to guess at a spelling that was never
+   going to match. */
+export async function findUserByUsername(env, username) {
+  const want = String(username || "").trim();
+  if (!want) return null;
+  try {
+    const res = await fetch(
+      `https://api.clerk.com/v1/users?username=${encodeURIComponent(want)}&limit=5`,
+      { headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}` } },
+    );
+    if (!res.ok) {
+      console.error("Clerk findUserByUsername failed:", res.status, await res.text());
+      return null;
+    }
+    const list = await res.json();
+    if (!Array.isArray(list)) return null;
+    // The query parameter filters exactly, but confirm rather than trust: this
+    // decides who can read a private config.
+    const hit = list.find(u => (u.username || "").toLowerCase() === want.toLowerCase());
+    return hit ? { userId: hit.id, username: hit.username } : null;
+  } catch (err) {
+    console.error("Clerk findUserByUsername error:", err);
+    return null;
+  }
+}
+
 /* Clerk Backend API — used by /admin/users, which needs the full roster
    including accounts that have never touched the Worker. */
 export async function clerkUsers(env, limit = 100) {
