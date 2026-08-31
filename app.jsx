@@ -22,6 +22,14 @@ function App() {
   const openDashboard = () => setView("dashboard");
   const leaveDashboard = () => setView("home");
 
+  const handleBuySkill = () => {
+    if (auth.email) {
+      openDashboard();
+    } else {
+      openAuth("signup");
+    }
+  };
+
   // If user signs out from inside the dashboard, kick back to home.
   useEffect(() => { if (!auth.email && view === "dashboard") setView("home"); }, [auth.email, view]);
 
@@ -58,7 +66,6 @@ function App() {
             <a href="#features">Features</a>
             <a href="#modules">Modules</a>
             <a href="#changelog">Changelog</a>
-            <a href="#download">Download</a>
             <a href="#faq">FAQ</a>
           </div>
           <div className="nav-cta">
@@ -74,11 +81,10 @@ function App() {
         </div>
       </nav>
 
-      <Hero />
+      <Hero onBuySkill={handleBuySkill} />
       <Features />
       <ModuleBrowser />
       <Changelog />
-      <Pricing />
       <Discord />
       <FAQ />
       <Footer />

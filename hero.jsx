@@ -146,7 +146,7 @@ function HudModuleList() {
 
 /* ─────────── hero ─────────── */
 
-function Hero() {
+function Hero({ onBuySkill }) {
   return (
     <section style={{ padding: "84px 0 0", position: "relative" }}>
       <div className="shell">
@@ -164,9 +164,9 @@ function Hero() {
           </p>
 
           <div style={{ display: "flex", gap: 10, marginTop: 32, flexWrap: "wrap", justifyContent: "center" }}>
-            <a href="#download" className="btn btn-primary btn-lg">
+            <button onClick={onBuySkill} className="btn btn-primary btn-lg">
               Buy Skill
-            </a>
+            </button>
             <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" className="btn btn-blue btn-lg">
               <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 15, height: 15 }}><path d="M13.5 3a13.4 13.4 0 0 0-3.3-1l-.2.3a12 12 0 0 0-4 0l-.2-.3a13.4 13.4 0 0 0-3.3 1A14 14 0 0 0 .3 11a13.5 13.5 0 0 0 4 2l.3-.4a8.6 8.6 0 0 1-1.4-.7c.1-.1.2-.2.3-.2a9.6 9.6 0 0 0 8.2 0l.3.2a8.6 8.6 0 0 1-1.4.7l.4.4a13.5 13.5 0 0 0 4-2 13.9 13.9 0 0 0-2.4-8ZM5.4 9.4c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Zm5.2 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Z"/></svg>
               Join Discord

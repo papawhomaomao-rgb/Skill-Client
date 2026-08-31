@@ -322,7 +322,7 @@ function FAQ() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: ["Features", "Modules", "Changelog", "Download"] },
+    { h: "Product", links: ["Features", "Modules", "Changelog"] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
