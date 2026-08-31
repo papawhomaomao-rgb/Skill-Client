@@ -335,7 +335,7 @@ function Footer() {
               <div className="brand-mark"></div>Skilled
             </div>
             <p className="small dim" style={{ maxWidth: 270 }}>
-              A ghost client for Minecraft 1.8.9 and 1.7.10. One licence, every module.
+              A ghost client for Minecraft 1.8.9 and 1.7.10.
             </p>
           </div>
           {cols.map(c => (
