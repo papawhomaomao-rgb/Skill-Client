@@ -207,7 +207,6 @@ function Pricing() {
       <div className="shell">
         <div className="sec-head center">
           <span className="eyebrow" style={{ justifyContent: "center" }}><span className="bead" />Download</span>
-          <h2 className="h2">Every module, one licence.</h2>
           <p className="lead">No tiers, no paywalled modules, no nag screens. Create an account, link your device, then run the installer.</p>
         </div>
 
