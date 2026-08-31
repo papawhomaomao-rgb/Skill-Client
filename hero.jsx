@@ -186,7 +186,6 @@ function Hero() {
       <div className="shell" style={{ marginTop: 88 }}>
         <div className="spec">
           {[
-            { k: "14", v: "Modules, all included" },
             { k: "Lua", v: "Scripting API" },
             { k: "1.8.9 / 1.7.10", v: "Supported versions" },
             { k: "1 device", v: "Per account, cloud synced" },
