@@ -23,12 +23,6 @@ function Features() {
   return (
     <section id="features" className="sec">
       <div className="shell">
-        <div className="sec-head">
-          <span className="eyebrow"><span className="bead" />Why Skilled</span>
-          <h2 className="h2">Built like software, not like a cheat menu.</h2>
-          <p className="lead">Most clients bolt features onto a mod loader and call it a day. Skilled was designed as a product first — which is why it feels like one.</p>
-        </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(288px,1fr))", gap: 16 }}>
           {cards.map(c => (
             <div key={c.title} className="card card-hover pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
