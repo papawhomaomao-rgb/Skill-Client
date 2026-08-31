@@ -68,6 +68,9 @@ button{font-family:inherit;cursor:default;border:0;background:none;color:inherit
 .btn-primary{background:var(--fg);color:oklch(0.15 0 0)}
 .btn-primary:hover{background:oklch(1 0 0)}
 .btn-primary:active{background:oklch(0.90 0 0)}
+.btn-blue{background:#5865F2;color:#fff;border-color:transparent}
+.btn-blue:hover{background:#4752C4;color:#fff}
+.btn-blue:active{background:#3b43a4;color:#fff}
 .btn-ghost{background:transparent;color:var(--fg-1);border-color:var(--line-2)}
 .btn-ghost:hover{background:oklch(1 0 0 / 0.04);border-color:var(--line-3);color:var(--fg)}
 .btn-quiet{color:var(--fg-2);padding:0 10px}
