@@ -44,16 +44,30 @@ DEV_EMAILS = "papawhomaomao@gmail.com"
 # and anyone who bought earlier has been backfilled. One redeploy to roll back.
 ENTITLEMENT_ENFORCED = "false"
 
-# Which adapter /api/checkout uses when the request does not name one. Empty
-# until a processor is chosen and registered in src/adapters.js; /api/checkout
-# answers 503 not_configured until then, rather than failing at the browser.
-PAYMENT_PROVIDER = ""
+# Which adapter /api/checkout uses when the request does not name one.
+PAYMENT_PROVIDER = "stripe"
+
+# Stripe price ids, one per plan key in src/plans.js: STRIPE_PRICE_<PLAN>.
+#
+# They live here rather than in plans.js because a price id is a different
+# object in test mode and in live mode, and the same source tree has to be able
+# to point at either. Leave one empty and that plan's checkout is built inline
+# from the amount in plans.js instead — it charges the right money, but Stripe
+# creates a throwaway Product per session and its reporting becomes useless.
+# Fill both in before launch.
+STRIPE_PRICE_LIFETIME = ""
+STRIPE_PRICE_MONTHLY = ""
 
 # wrangler secret put CLERK_SECRET_KEY
+# wrangler secret put STRIPE_SECRET_KEY       # sk_live_… (sk_test_… while testing)
+# wrangler secret put STRIPE_WEBHOOK_SECRET   # whsec_…, shown once when the
+#                                             # endpoint is created in Stripe
 #
-# Then one key and one webhook secret per provider, whatever it ends up being:
-#   wrangler secret put STRIPE_SECRET_KEY
-#   wrangler secret put STRIPE_WEBHOOK_SECRET
+# Both Stripe secrets or neither: with only the key set, /api/plans reports
+# configured:false and /api/checkout answers 503, deliberately. A checkout with
+# no webhook secret behind it takes the money and grants nothing.
+#
+# If a second provider is ever added:
 #   wrangler secret put PAYPAL_CLIENT_ID
 #   wrangler secret put PAYPAL_CLIENT_SECRET
 #   wrangler secret put PAYPAL_WEBHOOK_ID

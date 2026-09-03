@@ -60,6 +60,19 @@ const STATUS_FOR = {
   revoke: "revoked",
 };
 
+/* What the webhook is allowed to act on at all; everything else stops in
+   payments.js. It lives next to STATUS_FOR because the two have to agree — the
+   lookup below falls back to "active", so a type that gets past the gate
+   without a mapping here is a granted licence. */
+export const KNOWN_EVENT_TYPES = new Set([...Object.keys(STATUS_FOR), "cancel"]);
+
+/* And of those, the ones worth parking against an email when they turn up with
+   no user id attached. A purchase made before the account existed is the entire
+   point of the pending shelf. A refund or a chargeback nobody can be matched to
+   is just an event we cannot act on — shelving it would mean the next person to
+   sign up with that address claims someone else's revocation. */
+const CLAIMABLE = new Set(["purchase", "renewal"]);
+
 /* ── read path ───────────────────────────────────────────────────────────── */
 
 /* Is the gate closed? Until ENTITLEMENT_ENFORCED is the string "true", every
@@ -104,6 +117,7 @@ export async function readEntitlement(env, userId) {
    event; see adapters.js for the shape. */
 export async function applyEntitlement(env, ev) {
   if (!ev.userId) {
+    if (!CLAIMABLE.has(ev.type)) return { applied: false, reason: "unattributed" };
     // Bought from a provider-hosted storefront before signing up. Park it
     // against the email and let claimPending() collect it — matching on Clerk's
     // verified address later is safer than trusting an address in a webhook.

@@ -23,18 +23,23 @@
 
 import { json, readJson, clientIp, rateLimited } from "./http.js";
 import { requireUser, userProfile, primaryEmailOf } from "./clerk.js";
-import { readEntitlement, claimPending, applyEntitlement } from "./entitlement.js";
+import {
+  readEntitlement,
+  claimPending,
+  applyEntitlement,
+  KNOWN_EVENT_TYPES,
+} from "./entitlement.js";
 import { adapterFor, anyAdapterConfigured } from "./adapters.js";
 import { PLANS, publicPlans } from "./plans.js";
 
 const ORDER_TTL = 60 * 60 * 24 * 90;   // 90d — longer than any provider retries
 
 /* GET /api/plans — public. The pricing page renders from this so the amounts
-   live in exactly one file. `configured` is false until an adapter is
-   registered, which lets the page ship ahead of the processor decision with the
-   buy button disabled rather than broken. */
+   live in exactly one file. `configured` is false until a registered adapter
+   has the keys it needs, which lets the page ship ahead of the processor going
+   live with the buy button disabled rather than broken. */
 export async function plans(request, env) {
-  return json({ ok: true, plans: publicPlans(), configured: anyAdapterConfigured() }, { request, env });
+  return json({ ok: true, plans: publicPlans(), configured: anyAdapterConfigured(env) }, { request, env });
 }
 
 /* POST /api/checkout — Clerk bearer. */
@@ -50,7 +55,10 @@ export async function checkout(request, env) {
 
   const provider = String(body.provider || env.PAYMENT_PROVIDER || "");
   const adapter = adapterFor(provider);
-  if (!adapter)
+
+  /* Registered but keyless is still not configured. The alternative is a 500
+     out of the provider's API with the customer watching it happen. */
+  if (!adapter || (adapter.configured && !adapter.configured(env)))
     return json({ ok: false, error: "not_configured" }, { status: 503, request, env });
 
   /* The session token proves who this is and carries almost nothing else, so
@@ -88,8 +96,20 @@ export async function webhook(request, env, provider) {
     return json({ ok: false, error: "bad_json" }, { status: 400 });
   }
 
-  const ev = { provider, ...adapter.parse(parsed, raw) };
+  /* Awaited: an event that carries only a reference — a chargeback names a
+     charge and nothing else — has to be resolved against the provider before it
+     can be attributed. See the contract at the top of adapters.js. */
+  const ev = { provider, ...(await adapter.parse(parsed, raw, env)) };
   if (!ev.id) return json({ ok: false, error: "no_event_id" }, { status: 400 });
+
+  /* Providers send an endpoint every event type it is subscribed to, and the
+     default subscription is far wider than the six this understands. Anything
+     the adapter did not recognise stops here: 200, because it arrived fine and
+     a retry would not change the answer, and before the guard below, because
+     there is nothing to be idempotent about. This check is load-bearing —
+     without it an unrelated event reaches applyEntitlement, which reads an
+     unknown type as "active" and hands out a licence. */
+  if (!KNOWN_EVENT_TYPES.has(ev.type)) return json({ ok: true, ignored: true });
 
   /* Providers retry, and a retry must be a no-op rather than a second month of
      access. KV is eventually consistent, so two retries landing within the same

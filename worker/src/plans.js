@@ -7,19 +7,25 @@
 
    `amount` is minor units (cents). `days` is the access window a successful
    purchase buys — null means lifetime, and null is also what a staff grant
-   uses. `providerPriceId` is filled in per-provider once one is chosen; it is
-   the only field in here that knows a processor exists.
+   uses. `providerPriceId` is the only field in here that knows a processor
+   exists, and it normally stays null: the deployed value belongs in
+   STRIPE_PRICE_<PLAN> in wrangler.toml, because a Price id is a different
+   object in test mode and in live mode and one source tree has to point at
+   either.
 
-   PRICES BELOW ARE PLACEHOLDERS. Nothing on the site currently quotes a number
-   — sections.jsx:209 is named Pricing() but renders the download cards — so
-   there was no existing figure to carry over. Set these before launch. */
+   ONE CAVEAT, and it is the expensive kind. A Stripe Price carries its own
+   amount. Once STRIPE_PRICE_<PLAN> is set, editing a number below moves what
+   the site QUOTES and not what the card is CHARGED. Change both together, or
+   change neither — a page advertising $20 against a Price that takes $25 is a
+   chargeback with the evidence already written. With no price id set, the
+   checkout is built from these amounts and the two cannot disagree. */
 
 export const PLANS = {
   lifetime: {
     id: "lifetime",
     label: "Lifetime",
     blurb: "Every current and future module, forever.",
-    amount: 2999,
+    amount: 2500,
     currency: "USD",
     days: null,
     providerPriceId: null,
@@ -28,7 +34,7 @@ export const PLANS = {
     id: "monthly",
     label: "Monthly",
     blurb: "Every module, billed monthly. Cancel whenever.",
-    amount: 799,
+    amount: 800,
     currency: "USD",
     days: 30,
     providerPriceId: null,
