@@ -188,48 +188,133 @@ function Changelog() {
   );
 }
 
-/* ═══════════ Download ═══════════ */
+/* ═══════════ Pricing ═══════════ */
 
-function PlatformIcon({ name }) {
-  const p = { viewBox: "0 0 20 20", fill: "none", stroke: "var(--fg-1)", strokeWidth: 1.4, style: { width: 20, height: 20 } };
-  switch (name) {
-    case "win":   return <svg {...p}><rect x="2.5" y="3" width="6" height="6" rx=".8"/><rect x="11.5" y="3" width="6" height="6" rx=".8"/><rect x="2.5" y="11" width="6" height="6" rx=".8"/><rect x="11.5" y="11" width="6" height="6" rx=".8"/></svg>;
-    default: return null;
-  }
+/* The buy page.
+
+   Every number on it arrives from GET /api/plans, which serves
+   worker/src/plans.js — so this page cannot advertise a price the checkout does
+   not charge. Nothing in here knows which payment processor is live: the Worker
+   mints a hosted checkout and hands back a URL, and this follows it.
+
+   Three states that look alike and are not:
+
+     error         the Worker is unreachable. Quote nothing.
+     !configured   the Worker is up, the processor has no keys yet. Real prices,
+                   dead buttons — the section ships before the store does.
+     configured    buy. */
+
+const INCLUDED = [
+  "Every module — no tiers, nothing paywalled",
+  "ConfigCloud sync",
+  "Discord support",
+];
+
+function PlanCard({ plan, signedIn, owned, configured, busy, onBuy }) {
+  const recurring = plan.days != null;
+  const current = owned === plan.id;
+  const dead = current || !configured;
+
+  const label =
+    current     ? "Your current plan"
+    : !configured ? "Opening soon"
+    : !signedIn   ? "Create an account"
+    : busy        ? "Redirecting…"
+    : recurring   ? "Subscribe"
+    :               "Buy Skill";
+
+  return (
+    <div className={"card pad" + (recurring ? "" : " card-hi")}
+         style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span className="h3" style={{ fontSize: 17 }}>{plan.label}</span>
+        {!recurring && <span className="tag">Best value</span>}
+      </div>
+
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span style={{ fontSize: 42, fontWeight: 600, letterSpacing: "-.03em", lineHeight: 1 }}>
+          {formatPrice(plan.amount, plan.currency)}
+        </span>
+        <span style={{ fontSize: 13.5, color: "var(--fg-3)" }}>{recurring ? "per month" : "once"}</span>
+      </div>
+
+      <p className="small dim" style={{ margin: 0 }}>{plan.blurb}</p>
+
+      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+        {INCLUDED.concat(
+          recurring ? "Cancel any time — access runs to the end of the period"
+                    : "Every future module, at no extra cost"
+        ).map(x => (
+          <li key={x} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: "var(--fg-1)" }}>
+            <span className="check" />{x}
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => onBuy(plan.id)}
+        disabled={dead || !!busy}
+        className={"btn btn-lg " + (recurring ? "btn-ghost" : "btn-primary")}
+        style={{ width: "100%", marginTop: "auto", opacity: dead ? 0.5 : 1, cursor: dead ? "not-allowed" : undefined }}>
+        {label}
+      </button>
+    </div>
+  );
 }
 
-function Pricing() {
-  const platforms = [
-    { os: "Windows", ver: "10 and 11, 64-bit", file: "skilled-setup.exe", ic: "win" },
-  ];
+function Pricing({ auth, onRequireAuth }) {
+  const { plans, configured, loading, error } = usePlans();
+  const { start, busy, error: checkoutError } = useCheckout();
+
+  const signedIn = !!(auth && auth.email);
+  const { ent } = useEntitlement(signedIn);
+
+  /* While ENTITLEMENT_ENFORCED is "false" the Worker reports active for every
+     signed-in account, so `active` cannot answer "has this person bought
+     anything". The status can. */
+  const owned = ent && (ent.status === "active" || ent.status === "past_due") ? ent.plan : null;
+
+  const buy = (id) => (signedIn ? start(id) : onRequireAuth && onRequireAuth());
+
   return (
-    <section id="download" className="sec" style={{ paddingTop: 0 }}>
+    <section id="pricing" className="sec" style={{ paddingTop: 0 }}>
       <div className="shell">
         <div className="sec-head center">
-          <span className="eyebrow" style={{ justifyContent: "center" }}><span className="bead" />Download</span>
-          <p className="lead">No tiers, no paywalled modules, no nag screens. Create an account, link your device, then run the installer.</p>
+          <span className="eyebrow" style={{ justifyContent: "center" }}><span className="bead" />Pricing</span>
+          <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>One licence. Every module.</h2>
+          <p className="lead">No tiers, no paywalled modules, no nag screens. Buy it once or pay monthly — both unlock all fourteen.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14, maxWidth: 460, margin: "0 auto" }}>
-          {platforms.map(p => (
-            <a key={p.os} href="#" className="card card-hover pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 8, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                  <PlatformIcon name={p.ic} />
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <span className="h3" style={{ fontSize: 17 }}>{p.os}</span>
-                  <span style={{ fontSize: 12.5, color: "var(--fg-3)" }}>{p.ver}</span>
-                </div>
-              </div>
-              <span className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)" }}>{p.file}</span>
-              <span className="btn btn-ghost" style={{ width: "100%" }}>
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" style={{ width: 13, height: 13 }}><path d="M8 2v9m0 0-3-3m3 3 3-3M3 14h10"/></svg>
-                Download
-              </span>
-            </a>
-          ))}
-        </div>
+        {error ? (
+          <div className="card pad" style={{ maxWidth: 460, margin: "0 auto", textAlign: "center" }}>
+            <p className="body" style={{ margin: 0 }}>
+              The store is unreachable right now. Try again shortly, or ask in{" "}
+              <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer"
+                 style={{ color: "var(--fg-1)", textDecoration: "underline", textUnderlineOffset: 3 }}>Discord</a>.
+            </p>
+          </div>
+        ) : loading ? (
+          <p className="small dim" style={{ textAlign: "center" }}>Loading plans…</p>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))", gap: 16, maxWidth: 720, margin: "0 auto" }}>
+              {plans.map(p => (
+                <PlanCard key={p.id} plan={p} signedIn={signedIn} owned={owned}
+                          configured={configured} busy={busy === p.id} onBuy={buy} />
+              ))}
+            </div>
+
+            <p className="small dim" style={{ textAlign: "center", marginTop: 20, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
+              {checkoutError
+                ? <span style={{ color: "oklch(0.75 0.18 25)" }}>{checkoutError}</span>
+                : !configured
+                  ? "Checkout opens shortly. The prices above are final."
+                  : owned
+                    ? "You already hold a licence — manage it from your dashboard."
+                    : "You will be taken to our payment provider to pay, and returned here. Card details never touch this site."}
+            </p>
+          </>
+        )}
       </div>
     </section>
   );
@@ -322,7 +407,7 @@ function FAQ() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: ["Features", "Modules", "Changelog"] },
+    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Changelog", href: "#changelog" }, { name: "Pricing", href: "#pricing" }] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];

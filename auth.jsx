@@ -464,7 +464,153 @@ function useUserDirectory() {
   return users;
 }
 
+/* ─────────── Devices — real launcher sessions from Worker ─────────── */
+
+function useDevices() {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    try {
+      const r = await authenticatedFetch("/api/sessions");
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d && d.ok && Array.isArray(d.sessions)) {
+        setSessions(d.sessions);
+      }
+    } catch (e) { /* endpoint not deployed */ }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 15000);
+    return () => clearInterval(id);
+  }, [load]);
+
+  const revoke = async (sessionId) => {
+    try {
+      const r = await authenticatedFetch(`/api/sessions/${encodeURIComponent(sessionId)}`, { method: "DELETE" });
+      if (r.ok) await load();
+    } catch (e) { /* fall through */ }
+  };
+
+  return { sessions, loading, reload: load, revoke };
+}
+
+/* ─────────── Plans, checkout, entitlement ─────────── */
+
+/* GET /api/plans is public, because the pricing section has to render for
+   someone who has never signed in. The amounts come from worker/src/plans.js
+   and are never written down here — a price that disagrees with itself between
+   the page and the charge is the kind of bug you hear about through a
+   chargeback.
+
+   `configured` is the Worker saying whether a payment provider actually has its
+   keys. It stays false until the secrets are set, and the buy button reads it,
+   so the section ships in a disabled state rather than a broken one. */
+function usePlans() {
+  const [state, setState] = useState({ plans: [], configured: false, loading: true, error: null });
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${API_URL}/api/plans`);
+        const d = await r.json();
+        if (!alive) return;
+        if (!d || !d.ok) throw new Error("bad response");
+        setState({ plans: d.plans || [], configured: !!d.configured, loading: false, error: null });
+      } catch (e) {
+        if (alive) setState({ plans: [], configured: false, loading: false, error: "unreachable" });
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  return state;
+}
+
+const CHECKOUT_ERRORS = {
+  not_configured: "The store is not open yet.",
+  unknown_plan: "That plan no longer exists — reload the page.",
+  slow_down: "Too many attempts. Wait a minute and try again.",
+};
+
+/* POST /api/checkout, then hand the browser to whoever the Worker chose.
+
+   There is deliberately no fallback if that call fails. Sending someone to a
+   payment page this app did not mint means a payment carrying no account id,
+   and an unattributed payment is the one failure here that costs real money to
+   unpick — better a button that says it did not work. */
+function useCheckout() {
+  const [busy, setBusy] = useState(null);   // the plan id, so only its card waits
+  const [error, setError] = useState(null);
+
+  const start = async (plan) => {
+    setBusy(plan);
+    setError(null);
+    try {
+      const r = await authenticatedFetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const d = await r.json().catch(() => null);
+      // Leave `busy` set on success: the page is navigating away.
+      if (r.ok && d && d.ok && d.url) { window.location.assign(d.url); return; }
+      setError((d && CHECKOUT_ERRORS[d.error]) || "Could not start checkout. Try again in a moment.");
+    } catch (e) {
+      setError("Could not reach the store. Check your connection and try again.");
+    }
+    setBusy(null);
+  };
+
+  return { start, busy, error };
+}
+
+/* GET /api/entitlement — the record behind the Licence panel, and also the one
+   place a purchase made before the account existed gets claimed. Worth calling
+   even for an account that has never bought anything, for exactly that reason.
+
+   Pass enabled=false when signed out; the call would only 401. */
+function useEntitlement(enabled = true) {
+  const [ent, setEnt] = useState(null);
+  const [loading, setLoading] = useState(!!enabled);
+
+  const load = useCallback(async () => {
+    if (!enabled) { setLoading(false); return; }
+    try {
+      const r = await authenticatedFetch("/api/entitlement");
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d && d.ok && d.entitlement) setEnt(d.entitlement);
+    } catch (e) { /* endpoint not deployed */ }
+    finally { setLoading(false); }
+  }, [enabled]);
+
+  useEffect(() => { load(); }, [load]);
+  return { ent, loading, reload: load };
+}
+
+/* Minor units in, money out. The catalogue is the only place an amount is
+   written down; this just renders it, and drops the cents when there are
+   none — $25, not $25.00. */
+function formatPrice(amount, currency) {
+  const value = (Number(amount) || 0) / 100;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency || "USD",
+      minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    }).format(value);
+  } catch (e) {
+    return `$${value.toFixed(2)}`;
+  }
+}
+
 Object.assign(window, {
-  useAuth, useAnnouncements, useUserDirectory,
+  useAuth, useAnnouncements, useUserDirectory, useDevices,
+  usePlans, useCheckout, useEntitlement, formatPrice,
   AuthModal, UserMenu, authenticatedFetch, clerkAppearance, clerkModalAppearance, API_URL,
 });
