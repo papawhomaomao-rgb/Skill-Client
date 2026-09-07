@@ -122,7 +122,6 @@ function App() {
           <div className="nav-links">
             <a href="#features">Features</a>
             <a href="#modules">Modules</a>
-            <a href="#changelog">Changelog</a>
             <a href="#buy" onClick={(e) => { e.preventDefault(); handleBuySkill(); }}>Buy</a>
             <a href="#faq">FAQ</a>
           </div>
@@ -142,7 +141,6 @@ function App() {
       <Hero onBuySkill={handleBuySkill} />
       <Features />
       <ModuleBrowser />
-      <Changelog />
       <Discord />
       <FAQ />
       <Footer />

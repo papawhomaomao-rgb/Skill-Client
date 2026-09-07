@@ -128,45 +128,6 @@ function ModuleBrowser() {
   );
 }
 
-/* ═══════════ Changelog ═══════════ */
-
-const CHANGELOG = [
-  { v: "1.0.0", tag: "Initial", items: ["Skill is released!"] },
-];
-
-function Changelog() {
-  return (
-    <section id="changelog" className="sec" style={{ paddingTop: 0 }}>
-      <div className="shell">
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 36 }}>
-          <div style={{ maxWidth: 520 }}>
-            <span className="eyebrow"><span className="bead" />Changelog</span>
-            <h2 className="h2">Shipped often, written down every time.</h2>
-          </div>
-          <a href="#" className="btn btn-ghost">Full changelog</a>
-        </div>
-
-        <div className="card" style={{ overflow: "hidden" }}>
-          {CHANGELOG.map((c, i) => (
-            <div key={c.v} style={{ padding: "24px 26px", borderTop: i === 0 ? "none" : "1px solid var(--line)", display: "grid", gridTemplateColumns: "132px 1fr", gap: 28, alignItems: "start" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <span className="mono" style={{ fontSize: 15, fontWeight: 500, color: "var(--fg)" }}>v{c.v}</span>
-                {c.tag && <span className="tag" style={{ alignSelf: "flex-start", height: 22, fontSize: 10.5 }}>{c.tag}</span>}
-              </div>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-                {c.items.map((it, j) => (
-                  <li key={j} style={{ display: "grid", gridTemplateColumns: "16px 1fr", gap: 10, fontSize: 14.5, lineHeight: 1.55, color: "var(--fg-1)" }}>
-                    <span className="mono" style={{ color: "var(--fg-3)", fontSize: 13 }}>+</span>{it}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ═══════════ Pricing ═══════════ */
 
@@ -367,7 +328,7 @@ function FAQ() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Changelog", href: "#changelog" }, { name: "Buy", href: "#buy" }] },
+    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy" }] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
@@ -409,4 +370,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Features, ModuleBrowser, Changelog, Pricing, PlanCard, Discord, FAQ, Footer });
+Object.assign(window, { Features, ModuleBrowser, Pricing, PlanCard, Discord, FAQ, Footer });
