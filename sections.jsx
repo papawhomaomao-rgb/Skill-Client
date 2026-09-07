@@ -131,10 +131,7 @@ function ModuleBrowser() {
 /* ═══════════ Changelog ═══════════ */
 
 const CHANGELOG = [
-  { v: "1.0.4", tag: "Latest", items: ["Antibot retuned for ranked Bedwars lobbies", "Cloud configs resolve faster on a cold launch", "Fixed a Scaffold desync after teleporting"] },
-  { v: "1.0.2", tag: null,     items: ["Cloud — share a profile with a short link", "Command palette, opens with ⌘K anywhere", "Reach now tunes per game mode"] },
-  { v: "1.0.1", tag: null,     items: ["Signed the Windows installer", "Rewrote the AimAssist smoothing curve"] },
-  { v: "1.0.0", tag: "Initial",items: ["Clutch — auto-places to prevent fatal falls", "Drag-and-drop HUD editor", "Scaffold speedbridge timing"] },
+  { v: "1.0.0", tag: "Initial", items: ["Skill is released!"] },
 ];
 
 function Changelog() {
