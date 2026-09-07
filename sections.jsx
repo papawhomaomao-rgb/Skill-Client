@@ -289,7 +289,7 @@ function FAQ() {
 
 /* ═══════════ Footer ═══════════ */
 
-function Footer() {
+function Footer({ onTerms }) {
   const cols = [
     { h: "Product", links: [{ name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy" }] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
@@ -312,6 +312,9 @@ function Footer() {
               <span className="label" style={{ marginBottom: 3 }}>{c.h}</span>
               {c.links.map(l => {
                 if (typeof l === "string") {
+                  if (l === "Terms") {
+                    return <a key={l} href="#" onClick={(e) => { e.preventDefault(); onTerms && onTerms(); }}>{l}</a>;
+                  }
                   return <a key={l} href="#">{l}</a>;
                 }
                 return (

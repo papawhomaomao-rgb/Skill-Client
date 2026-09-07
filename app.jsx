@@ -29,6 +29,7 @@ function App() {
   const [view, setView] = React.useState("home"); // 'home' | 'dashboard'
   const [dashTab, setDashTab] = React.useState(null);
   const [checkout, setCheckout] = React.useState(readCheckoutParam);
+  const [termsOpen, setTermsOpen] = React.useState(false);
 
   const openAuth = (mode) => { setAuthMode(mode); setAuthOpen(true); };
   const openDashboard = () => { setDashTab(null); setView("dashboard"); };
@@ -141,9 +142,10 @@ function App() {
       <ModuleBrowser />
       <Discord />
       <FAQ />
-      <Footer />
+      <Footer onTerms={() => setTermsOpen(true)} />
 
       <AuthModal open={authOpen} mode={authMode} onClose={() => setAuthOpen(false)} auth={auth} />
+      {termsOpen && <TermsPage onClose={() => setTermsOpen(false)} />}
       {toast}
 
       <TweaksPanel>

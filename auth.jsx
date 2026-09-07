@@ -207,6 +207,7 @@ function AuthModal({ open, mode, onClose, auth }) {
   const slot = useRef(null);
   const mounted = useRef(null);
   const isSignUp = mode === "signup";
+  const [termsOpen, setTermsOpen] = useState(false);
 
   useEffect(() => {
     if (!open || !auth.clerk || !slot.current) return;
@@ -290,7 +291,22 @@ function AuthModal({ open, mode, onClose, auth }) {
             Loading…
           </div>
         )}
+
+        {isSignUp && (
+          <p style={{ marginTop: 14, fontSize: 11.5, color: "var(--fg-3)", textAlign: "center", lineHeight: 1.6 }}>
+            By creating an account you agree to our{" "}
+            <button
+              onClick={(e) => { e.stopPropagation(); setTermsOpen(true); }}
+              style={{ color: "var(--acc)", fontWeight: 600, fontSize: 11.5, textDecoration: "underline", cursor: "pointer" }}
+            >
+              Terms of Service
+            </button>
+            , including our policies on no cracking, no redistribution, and no fraud.
+          </p>
+        )}
       </div>
+
+      {termsOpen && <TermsPage onClose={() => setTermsOpen(false)} />}
     </div>
   );
 }
