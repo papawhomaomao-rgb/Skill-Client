@@ -55,8 +55,8 @@ PAYMENT_PROVIDER = "stripe"
 # from the amount in plans.js instead — it charges the right money, but Stripe
 # creates a throwaway Product per session and its reporting becomes useless.
 # Fill both in before launch.
-STRIPE_PRICE_LIFETIME = ""
-STRIPE_PRICE_MONTHLY = ""
+STRIPE_PRICE_LIFETIME = "price_1UCpVDRyvaZevG5DBWWTOoeK"
+STRIPE_PRICE_MONTHLY = "price_1UCpjDRyvaZevG5DLEQW76N8"
 
 # wrangler secret put CLERK_SECRET_KEY
 # wrangler secret put STRIPE_SECRET_KEY       # sk_live_… (sk_test_… while testing)
