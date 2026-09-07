@@ -43,6 +43,21 @@ function GuiModuleCard({ name, desc, on }) {
   );
 }
 
+function GuiModuleIcon({ name }) {
+  const p = { viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: 1.3, style: { width: 13, height: 13 } };
+  switch (name) {
+    case "Auto Clicker":  return <svg {...p}><path d="M4 2v10l3-3 2 4 2-1-2-4 4-1z"/></svg>;
+    case "Right Clicker": return <svg {...p}><rect x="3" y="2" width="10" height="12" rx="4"/><path d="M8 2v5M8 2h5"/></svg>;
+    case "W-Tap":         return <svg {...p}><path d="M3 8h10M10 5l3 3-3 3"/></svg>;
+    case "Aim Assist":     return <svg {...p}><circle cx="8" cy="8" r="5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg>;
+    case "Anti-Bot":       return <svg {...p}><path d="M8 1.5L2 4v4.5c0 3.8 2.6 6.8 6 7.5 3.4-.7 6-3.7 6-7.5V4l-6-2.5z"/></svg>;
+    case "Auto Sprint":   return <svg {...p}><path d="M3 13l3-3 3 2 4-6M13 6v3m0-3h-3"/></svg>;
+    case "Bridge Assist": return <svg {...p}><path d="M2 14h12M4 14v-4h3.5v-4H11V2"/></svg>;
+    case "ESP":           return <svg {...p}><rect x="3" y="3" width="10" height="10" rx="1"/><path d="M1 8h2M13 8h2M8 1v2M8 13v2"/></svg>;
+    default:              return <svg {...p}><circle cx="8" cy="8" r="3"/></svg>;
+  }
+}
+
 function ClickGuiShot() {
   const [selectedModule, setSelectedModule] = useState("Auto Clicker");
   const [activeTab, setActiveTab] = useState("All");
@@ -94,34 +109,33 @@ function ClickGuiShot() {
   });
 
   const activeCount = Object.values(moduleStates).filter(Boolean).length;
-
   const currentModObj = allModules.find(m => m.name === selectedModule) || allModules[0];
 
   return (
-    <div className="frame" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 24px 70px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)", overflowX: "auto", borderRadius: 14 }}>
+    <div className="frame" style={{ background: "#252626", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 24px 70px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)", overflowX: "auto", borderRadius: 12 }}>
       {/* Top Application Header Bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.35)", minWidth: 740 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "#2b2c2c", minWidth: 760 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 22, height: 22, borderRadius: 5, background: "#ffffff", display: "grid", placeItems: "center", color: "#000", fontWeight: 900, fontSize: 10, letterSpacing: "-.05em" }}>
               SK
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-.02em", color: "#ffffff" }}>SKILL</span>
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-.02em", color: "#ffffff" }}>SKILL</span>
           </div>
-          <div style={{ height: 14, width: 1, background: "rgba(255,255,255,0.12)" }} />
+          <div style={{ height: 16, width: 1, background: "rgba(255,255,255,0.12)" }} />
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#ffffff", letterSpacing: "-.01em" }}>Modules</span>
-            <span style={{ fontSize: 10.5, color: "var(--fg-3)" }}>Browse features, then tune one focused setting panel</span>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: "#ffffff", letterSpacing: "-.01em" }}>Modules</span>
+            <span style={{ fontSize: 11, color: "#888888" }}>Browse features, then tune one focused setting panel</span>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ padding: "4px 10px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "var(--fg-1)", display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--acc)" }} />
+          <div style={{ padding: "5px 12px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11.5, fontWeight: 600, color: "#ffffff", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--acc)" }} />
             {activeCount} enabled
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 32, width: 180, borderRadius: 7, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="var(--fg-3)" strokeWidth="1.4" style={{ width: 12, height: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 32, width: 190, borderRadius: 7, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="#777" strokeWidth="1.4" style={{ width: 12, height: 12 }}>
               <circle cx="7" cy="7" r="4.5"/><path d="m11 11 3 3"/>
             </svg>
             <input 
@@ -135,71 +149,71 @@ function ClickGuiShot() {
       </div>
 
       {/* 3-Column Layout Showcase */}
-      <div style={{ display: "grid", gridTemplateColumns: "205px 330px 1fr", minHeight: 510, minWidth: 740, background: "#111111", fontSize: 12, color: "#d0d0d0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "205px 330px 1fr", minHeight: 510, minWidth: 760, background: "#252626", fontSize: 12, color: "#d0d0d0" }}>
         
         {/* Column 1: Sidebar */}
-        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 14px", display: "flex", flexDirection: "column", background: "#0d0d0d" }}>
+        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 14px", display: "flex", flexDirection: "column", background: "#353636" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
             <div>
-              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>WORKSPACE</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "#999999", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>WORKSPACE</span>
               {navItems.filter(i => i.group === "WORKSPACE").map(i => (
-                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, background: i.active ? "rgba(255,255,255,0.07)" : "transparent", border: `1px solid ${i.active ? "rgba(255,255,255,0.1)" : "transparent"}`, color: i.active ? "#fff" : "var(--fg-3)", cursor: "pointer", marginBottom: 3, transition: "all .12s" }}>
+                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, background: i.active ? "rgba(255,255,255,0.08)" : "transparent", border: `1px solid ${i.active ? "rgba(255,255,255,0.12)" : "transparent"}`, color: i.active ? "#fff" : "#aaaaaa", cursor: "pointer", marginBottom: 3, transition: "all .12s" }}>
                   <SidebarIcon name={i.icon} active={i.active} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <span style={{ fontSize: 12, fontWeight: i.active ? 600 : 400 }}>{i.name}</span>
-                    <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{i.desc}</span>
+                    <span style={{ fontSize: 9.5, color: "#888888" }}>{i.desc}</span>
                   </div>
                 </div>
               ))}
             </div>
 
             <div>
-              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>CLIENT</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "#999999", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>CLIENT</span>
               {navItems.filter(i => i.group === "CLIENT").map(i => (
-                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, color: "var(--fg-3)", cursor: "pointer", marginBottom: 3 }}>
+                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, color: "#aaaaaa", cursor: "pointer", marginBottom: 3 }}>
                   <SidebarIcon name={i.icon} active={false} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <span style={{ fontSize: 12 }}>{i.name}</span>
-                    <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{i.desc}</span>
+                    <span style={{ fontSize: 9.5, color: "#888888" }}>{i.desc}</span>
                   </div>
                 </div>
               ))}
             </div>
 
             <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
-              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>LOAD OUT</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "#999999", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>LOAD OUT</span>
               <div style={{ display: "flex", gap: 3, marginBottom: 8 }}>
                 {Array.from({ length: 12 }).map((_, idx) => (
-                  <div key={idx} style={{ flex: 1, height: 4, borderRadius: 2, background: idx < activeCount ? "var(--acc)" : "rgba(255,255,255,0.08)" }} />
+                  <div key={idx} style={{ flex: 1, height: 4, borderRadius: 2, background: idx < activeCount ? "#ffffff" : "rgba(255,255,255,0.12)" }} />
                 ))}
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--fg-3)", marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "#ffffff", fontWeight: 600, marginBottom: 8 }}>
                 <span>{activeCount} of 12 active</span>
               </div>
-              <div style={{ fontSize: 10.5, color: "var(--fg-3)", display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ fontSize: 10.5, color: "#aaaaaa", display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>Combat</span><span style={{ color: "#fff" }}>5/5</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>Movement</span><span style={{ color: "#fff" }}>2/2</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>Visual</span><span style={{ color: "#fff" }}>4/4</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}><span>Legit</span><span style={{ color: "#fff" }}>1/1</span></div>
               </div>
-              <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10.5, color: "var(--fg-3)" }}>
+              <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10.5, color: "#aaaaaa" }}>
                 <span>Menu key</span>
-                <span style={{ padding: "2px 6px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 5, color: "#fff", fontWeight: 500 }}>Right Shift</span>
+                <span style={{ padding: "2px 6px", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 5, color: "#fff", fontWeight: 500 }}>Right Shift</span>
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: 14, padding: "9px 11px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{ marginTop: 14, padding: "9px 11px", borderRadius: 8, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#222", color: "#fff", display: "grid", placeItems: "center", fontSize: 9.5, fontWeight: 700, border: "1px solid rgba(255,255,255,0.15)" }}>SK</div>
             <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>qinnn</span>
-              <span style={{ fontSize: 9.5, color: "oklch(0.74 0.19 148)", fontWeight: 500 }}>Connected</span>
+              <span style={{ fontSize: 9.5, color: "#4cd964", fontWeight: 500 }}>Connected</span>
             </div>
           </div>
         </div>
 
         {/* Column 2: Catalogue */}
-        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 16px", display: "flex", flexDirection: "column", background: "#131313" }}>
+        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 16px", display: "flex", flexDirection: "column", background: "#272828" }}>
           <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
             {[
               { label: "All", count: 12 },
@@ -215,14 +229,14 @@ function ClickGuiShot() {
                 <button 
                   key={t.label} 
                   onClick={() => setActiveTab(t.label)} 
-                  style={{ padding: "4px 9px", borderRadius: 6, fontSize: 11, fontWeight: 500, background: isSelected ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.03)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.2)" : "transparent"}`, color: isSelected ? "#fff" : "var(--fg-3)", cursor: "pointer", transition: "all .12s" }}>
+                  style={{ padding: "4px 9px", borderRadius: 6, fontSize: 11, fontWeight: 500, background: isSelected ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.2)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.2)" : "transparent"}`, color: isSelected ? "#fff" : "#aaaaaa", cursor: "pointer", transition: "all .12s" }}>
                   {t.label} <span style={{ opacity: 0.6, fontSize: 10 }}>{t.count}</span>
                 </button>
               );
             })}
           </div>
 
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", marginBottom: 12 }}>
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: "#888888", letterSpacing: "0.09em", marginBottom: 12 }}>
             CATALOGUE · {filteredModules.length} shown · All modules
           </div>
 
@@ -232,7 +246,7 @@ function ClickGuiShot() {
               if (modsInCat.length === 0) return null;
               return (
                 <div key={catName}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 7 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#888888", letterSpacing: "0.09em", display: "block", marginBottom: 7 }}>
                     {catName.toUpperCase()} {modsInCat.length}
                   </span>
                   {modsInCat.map(m => {
@@ -242,10 +256,13 @@ function ClickGuiShot() {
                       <div 
                         key={m.name} 
                         onClick={() => setSelectedModule(m.name)} 
-                        style={{ padding: "10px 12px", borderRadius: 8, background: isSelected ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.025)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.04)"}`, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", marginBottom: 5, transition: "all .12s" }}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#ffffff" }}>{m.name}</span>
-                          <span style={{ fontSize: 10, color: "var(--fg-3)" }}>{m.sub}</span>
+                        style={{ padding: "9px 11px", borderRadius: 8, background: isSelected ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.18)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.03)"}`, display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: 5, transition: "all .12s" }}>
+                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", display: "grid", placeItems: "center", color: isOn ? "#fff" : "#777", flexShrink: 0 }}>
+                          <GuiModuleIcon name={m.name} />
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#ffffff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</span>
+                          <span style={{ fontSize: 9.5, color: "#888888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.sub}</span>
                         </div>
                         <GuiToggle on={isOn} />
                       </div>
@@ -258,39 +275,40 @@ function ClickGuiShot() {
         </div>
 
         {/* Column 3: Inspector Panel */}
-        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", background: "#111111" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", textTransform: "uppercase" }}>
+        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", background: "#252626" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#888888", letterSpacing: "0.09em", textTransform: "uppercase" }}>
               {currentModObj.cat}
             </span>
-            <div style={{ cursor: "pointer" }} onClick={(e) => toggleModule(currentModObj.name, e)}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={(e) => toggleModule(currentModObj.name, e)}>
+              <span style={{ fontSize: 10.5, color: "#aaa", fontWeight: 500 }}>Enabled</span>
               <GuiToggle on={!!moduleStates[currentModObj.name]} />
             </div>
           </div>
 
-          <h3 style={{ fontSize: 20, fontWeight: 700, color: "#ffffff", margin: "0 0 4px", letterSpacing: "-.02em" }}>{currentModObj.name}</h3>
-          <p style={{ fontSize: 11.5, color: "var(--fg-3)", margin: "0 0 24px" }}>{currentModObj.desc}</p>
+          <h3 style={{ fontSize: 21, fontWeight: 700, color: "#ffffff", margin: "0 0 4px", letterSpacing: "-.02em" }}>{currentModObj.name}</h3>
+          <p style={{ fontSize: 11.5, color: "#888888", margin: "0 0 24px" }}>{currentModObj.desc}</p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
             <div>
-              <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 4 }}>Speed</span>
+              <span style={{ fontSize: 10, color: "#888888", display: "block", marginBottom: 3 }}>Speed</span>
               <span style={{ fontSize: 11.5, fontWeight: 600, color: "#ffffff", display: "block", marginBottom: 10 }}>Clicks Per Second</span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-                  <span style={{ fontSize: 10.5, color: "var(--fg-3)", display: "block", marginBottom: 2 }}>Slowest</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff" }}>{slowestCps}</span>
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "#888888" }}>Slowest</span>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: "#ffffff" }}>{slowestCps}</span>
                 </div>
-                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-                  <span style={{ fontSize: 10.5, color: "var(--fg-3)", display: "block", marginBottom: 2 }}>Fastest</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff" }}>{fastestCps}</span>
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "#888888" }}>Fastest</span>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: "#ffffff" }}>{fastestCps}</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, marginBottom: 10 }}>
-                <span style={{ color: "var(--fg-3)" }}>Delay</span>
-                <span style={{ fontWeight: 600, color: "#ffffff" }}>{delaySec} s</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11.5, marginBottom: 10 }}>
+                <span style={{ color: "#888888" }}>Delay</span>
+                <span style={{ padding: "2px 8px", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 5, fontSize: 11, fontWeight: 600, color: "#ffffff" }}>{delaySec} s</span>
               </div>
               <input 
                 type="range" 
@@ -304,7 +322,7 @@ function ClickGuiShot() {
             </div>
 
             <div>
-              <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 10 }}>When It Runs</span>
+              <span style={{ fontSize: 10, color: "#888888", display: "block", marginBottom: 10 }}>When It Runs</span>
               <label style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, color: "#ffffff", cursor: "pointer", userSelect: "none" }}>
                 <input 
                   type="checkbox" 
@@ -316,13 +334,15 @@ function ClickGuiShot() {
               </label>
             </div>
 
-            <div style={{ marginTop: 6, padding: 16, borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px dashed rgba(255,255,255,0.12)" }}>
-              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.1em", display: "block", textAlign: "center", marginBottom: 12 }}>HOW IT BEHAVES</span>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: "var(--fg-2)", display: "flex", flexDirection: "column", gap: 7, lineHeight: 1.45 }}>
-                <li>Runs while you hold left mouse. Let go to stop.</li>
-                <li>A fresh speed is drawn from your range for every click.</li>
-                <li>Waits {delaySec}s after you press before the first click.</li>
-              </ul>
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "#666666", letterSpacing: "0.12em", marginBottom: 14 }}>
+                HOW IT BEHAVES
+              </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, textAlign: "center", fontSize: 11.5, color: "#d0d0d0", lineHeight: 1.5, maxWidth: 320 }}>
+                <p style={{ margin: 0 }}>Runs while you hold left mouse. Let go to stop.</p>
+                <p style={{ margin: 0 }}>A fresh speed is drawn from your range for every click.</p>
+                <p style={{ margin: 0 }}>Waits {delaySec}s after you press before the first click.</p>
+              </div>
             </div>
           </div>
         </div>
