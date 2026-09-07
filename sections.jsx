@@ -33,6 +33,7 @@ function Features() {
               <p className="body" style={{ flex: 1 }}>{c.body}</p>
               <span className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)", paddingTop: 14, borderTop: "1px solid var(--line)" }}>{c.meta}</span>
             </div>
+          ))}
         </div>
       </div>
     </section>
