@@ -33,24 +33,6 @@ function Features() {
               <p className="body" style={{ flex: 1 }}>{c.body}</p>
               <span className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)", paddingTop: 14, borderTop: "1px solid var(--line)" }}>{c.meta}</span>
             </div>
-          ))}
-        </div>
-
-        {/* wide HUD row */}
-        <div className="card" style={{ marginTop: 16, display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.05fr)", gap: 0, overflow: "hidden" }}>
-          <div style={{ padding: "40px 36px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
-            <span className="tag" style={{ alignSelf: "flex-start" }}>In-game overlay</span>
-            <h3 className="h2" style={{ fontSize: "clamp(26px,2.6vw,36px)" }}>Know what's on without opening anything.</h3>
-            <p className="body">The heads-up list mirrors exactly what's enabled, sorted by name length so it never reflows mid-fight. Drag it anywhere, hide it per-screen, or turn it off entirely.</p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-              <span className="tag tag-flat">Draggable</span>
-              <span className="tag tag-flat">Zero frame cost</span>
-              <span className="tag tag-flat">Per-screen visibility</span>
-            </div>
-          </div>
-          <div style={{ padding: 32, display: "flex", justifyContent: "flex-end", alignItems: "flex-start", borderLeft: "1px solid var(--line)", background: "oklch(0 0 0 / 0.18)", minHeight: 400 }}>
-            <HudModuleList />
-          </div>
         </div>
       </div>
     </section>
