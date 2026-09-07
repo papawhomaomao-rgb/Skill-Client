@@ -44,8 +44,9 @@ function GuiModuleCard({ name, desc, on }) {
 }
 
 function ClickGuiShot() {
-  const [mode, setMode] = useState("image"); // "image" | "interactive"
   const [selectedModule, setSelectedModule] = useState("Auto Clicker");
+  const [activeTab, setActiveTab] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [moduleStates, setModuleStates] = useState({
     "Auto Clicker": true,
     "Right Clicker": true,
@@ -75,231 +76,258 @@ function ClickGuiShot() {
     { name: "Settings", icon: "settings", group: "CLIENT", desc: "Workspace and safety" },
   ];
 
+  const allModules = [
+    { name: "Auto Clicker", cat: "Combat", sub: "13.2-19.9 per sec", desc: "Clicks for you while you hold left mouse" },
+    { name: "Right Clicker", cat: "Combat", sub: "10.0-15.7 per sec · Blocks only", desc: "Synthetic secondary input while holding main click" },
+    { name: "W-Tap", cat: "Combat", sub: "1 tick · Tape back", desc: "Sprint-reset timing for maximum knockback output" },
+    { name: "Aim Assist", cat: "Combat", sub: "Gently pulls your crosshair toward a target", desc: "Smooth subtle target tracking with custom FOV" },
+    { name: "Anti-Bot", cat: "Combat", sub: "Stops other features targeting fake players", desc: "Filters out server bot entities automatically" },
+    { name: "Auto Sprint", cat: "Movement", sub: "Holds sprint for you · Game's own rules", desc: "Continuous sprint injection respecting game mechanics" },
+    { name: "Bridge Assist", cat: "Movement", sub: "Sneaks early · Holds 25 ms", desc: "Timing assistance for safe fast-bridging" },
+    { name: "ESP", cat: "Visual", sub: "2D box · Health bar", desc: "Renders clean entity overlays and health indicators" },
+  ];
+
+  const filteredModules = allModules.filter(m => {
+    const matchesCat = activeTab === "All" || activeTab.startsWith(m.cat);
+    const matchesQuery = !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.sub.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesQuery;
+  });
+
+  const activeCount = Object.values(moduleStates).filter(Boolean).length;
+
+  const currentModObj = allModules.find(m => m.name === selectedModule) || allModules[0];
+
   return (
-    <div className="frame" style={{ background: "#121212", border: "1px solid var(--line-3)", boxShadow: "var(--sh-4)", overflow: "hidden", borderRadius: 12 }}>
-      {/* Top Window Navigation Bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderBottom: "1px solid var(--line)", background: "rgba(0,0,0,0.4)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ display: "flex", gap: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f56" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ffbd2e" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#27c93f" }} />
+    <div className="frame" style={{ background: "#111111", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 24px 70px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)", overflowX: "auto", borderRadius: 14 }}>
+      {/* Top Application Header Bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.35)", minWidth: 740 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 5, background: "#ffffff", display: "grid", placeItems: "center", color: "#000", fontWeight: 900, fontSize: 10, letterSpacing: "-.05em" }}>
+              SK
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-.02em", color: "#ffffff" }}>SKILL</span>
           </div>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-2)", marginLeft: 6 }}>SKILL Client — In-Game GUI</span>
+          <div style={{ height: 14, width: 1, background: "rgba(255,255,255,0.12)" }} />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#ffffff", letterSpacing: "-.01em" }}>Modules</span>
+            <span style={{ fontSize: 10.5, color: "var(--fg-3)" }}>Browse features, then tune one focused setting panel</span>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", padding: 2, borderRadius: 6, gap: 2 }}>
-            <button 
-              onClick={() => setMode("image")} 
-              style={{ padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: 500, background: mode === "image" ? "var(--acc-soft)" : "transparent", color: mode === "image" ? "var(--acc)" : "var(--fg-3)", border: mode === "image" ? "1px solid var(--acc-line)" : "1px solid transparent", transition: "all .15s" }}>
-              Screenshot View
-            </button>
-            <button 
-              onClick={() => setMode("interactive")} 
-              style={{ padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: 500, background: mode === "interactive" ? "var(--acc-soft)" : "transparent", color: mode === "interactive" ? "var(--acc)" : "var(--fg-3)", border: mode === "interactive" ? "1px solid var(--acc-line)" : "1px solid transparent", transition: "all .15s" }}>
-              Interactive View
-            </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ padding: "4px 10px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "var(--fg-1)", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--acc)" }} />
+            {activeCount} enabled
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 32, width: 180, borderRadius: 7, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="var(--fg-3)" strokeWidth="1.4" style={{ width: 12, height: 12 }}>
+              <circle cx="7" cy="7" r="4.5"/><path d="m11 11 3 3"/>
+            </svg>
+            <input 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              placeholder="Search modules..." 
+              style={{ background: "none", border: "none", outline: "none", color: "#fff", fontSize: 11.5, width: "100%" }} 
+            />
           </div>
         </div>
       </div>
 
-      {mode === "image" ? (
-        <div style={{ width: "100%", background: "#181818", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <img 
-            src="uploads/skill_gui_clean.png" 
-            alt="Skilled GUI Interface" 
-            style={{ width: "100%", height: "auto", display: "block" }} 
-          />
-        </div>
-      ) : (
-        /* Interactive 3-column Client GUI replica matching the screenshot */
-        <div style={{ display: "grid", gridTemplateColumns: "200px 320px 1fr", minHeight: 520, background: "#161616", fontSize: 12, color: "#d0d0d0" }}>
-          {/* Column 1: Sidebar */}
-          <div style={{ borderRight: "1px solid var(--line)", padding: "14px 12px", display: "flex", flexDirection: "column", background: "#141414" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: "1px solid var(--line)", marginBottom: 12 }}>
-              <div style={{ width: 26, height: 26, borderRadius: 6, background: "#ffffff", display: "grid", placeItems: "center", color: "#000", fontWeight: 800, fontSize: 11 }}>
-                SK
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.05em", color: "#fff" }}>SKILL</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
-              <div>
-                <span style={{ fontSize: 9.5, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>WORKSPACE</span>
-                {navItems.filter(i => i.group === "WORKSPACE").map(i => (
-                  <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 9, padding: "6px 8px", borderRadius: 6, background: i.active ? "rgba(255,255,255,0.06)" : "transparent", color: i.active ? "#fff" : "var(--fg-3)", cursor: "pointer", marginBottom: 2 }}>
-                    <SidebarIcon name={i.icon} active={i.active} />
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontSize: 11.5, fontWeight: i.active ? 600 : 400 }}>{i.name}</span>
-                      <span style={{ fontSize: 9, color: "var(--fg-3)" }}>{i.desc}</span>
-                    </div>
+      {/* 3-Column Layout Showcase */}
+      <div style={{ display: "grid", gridTemplateColumns: "205px 330px 1fr", minHeight: 510, minWidth: 740, background: "#111111", fontSize: 12, color: "#d0d0d0" }}>
+        
+        {/* Column 1: Sidebar */}
+        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 14px", display: "flex", flexDirection: "column", background: "#0d0d0d" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+            <div>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>WORKSPACE</span>
+              {navItems.filter(i => i.group === "WORKSPACE").map(i => (
+                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, background: i.active ? "rgba(255,255,255,0.07)" : "transparent", border: `1px solid ${i.active ? "rgba(255,255,255,0.1)" : "transparent"}`, color: i.active ? "#fff" : "var(--fg-3)", cursor: "pointer", marginBottom: 3, transition: "all .12s" }}>
+                  <SidebarIcon name={i.icon} active={i.active} />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: 12, fontWeight: i.active ? 600 : 400 }}>{i.name}</span>
+                    <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{i.desc}</span>
                   </div>
-                ))}
-              </div>
-
-              <div>
-                <span style={{ fontSize: 9.5, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>CLIENT</span>
-                {navItems.filter(i => i.group === "CLIENT").map(i => (
-                  <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 9, padding: "6px 8px", borderRadius: 6, color: "var(--fg-3)", cursor: "pointer", marginBottom: 2 }}>
-                    <SidebarIcon name={i.icon} active={false} />
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontSize: 11.5 }}>{i.name}</span>
-                      <span style={{ fontSize: 9, color: "var(--fg-3)" }}>{i.desc}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: "auto", borderTop: "1px solid var(--line)", paddingTop: 10 }}>
-                <span style={{ fontSize: 9.5, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>LOAD OUT</span>
-                <div style={{ display: "flex", gap: 3, marginBottom: 8 }}>
-                  {Array.from({ length: 12 }).map((_, idx) => (
-                    <div key={idx} style={{ flex: 1, height: 4, borderRadius: 2, background: idx < 10 ? "var(--acc)" : "rgba(255,255,255,0.1)" }} />
-                  ))}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--fg-3)", marginBottom: 6 }}>
-                  <span>10 of 12 active</span>
-                </div>
-                <div style={{ fontSize: 10, color: "var(--fg-3)", display: "flex", flexDirection: "column", gap: 3 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Combat</span><span>5/5</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Movement</span><span>2/2</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Visual</span><span>4/4</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>Legit</span><span>1/1</span></div>
-                </div>
-                <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10, color: "var(--fg-3)" }}>
-                  <span>Menu key</span>
-                  <span style={{ padding: "1px 5px", background: "rgba(255,255,255,0.08)", borderRadius: 4 }}>Right Shift</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 12, padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#333", color: "#fff", display: "grid", placeItems: "center", fontSize: 9, fontWeight: 700 }}>SK</div>
-              <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#fff" }}>qinnn</span>
-                <span style={{ fontSize: 9, color: "#4cd964" }}>Connected</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Column 2: Catalogue */}
-          <div style={{ borderRight: "1px solid var(--line)", padding: "14px 14px", display: "flex", flexDirection: "column", background: "#181818" }}>
-            <div style={{ display: "flex", gap: 4, marginBottom: 12, flexWrap: "wrap" }}>
-              {["All 12", "Combat 5", "Movement 2", "Visual 4", "Legit 1", "Misc 0"].map((t, idx) => (
-                <span key={t} style={{ padding: "3px 8px", borderRadius: 5, fontSize: 10.5, background: idx === 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.03)", color: idx === 0 ? "#fff" : "var(--fg-3)", cursor: "pointer" }}>
-                  {t}
-                </span>
               ))}
             </div>
 
-            <div style={{ fontSize: 9.5, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.08em", marginBottom: 10 }}>
-              CATALOGUE · 12 shown · All modules
+            <div>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>CLIENT</span>
+              {navItems.filter(i => i.group === "CLIENT").map(i => (
+                <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 7, color: "var(--fg-3)", cursor: "pointer", marginBottom: 3 }}>
+                  <SidebarIcon name={i.icon} active={false} />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span style={{ fontSize: 12 }}>{i.name}</span>
+                    <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{i.desc}</span>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, overflowY: "auto" }}>
-              <div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>COMBAT 5</span>
-                {[
-                  { name: "Auto Clicker", sub: "13.2-19.9 per sec" },
-                  { name: "Right Clicker", sub: "10.0-15.7 per sec · Blocks only" },
-                  { name: "W-Tap", sub: "1 tick · Tape back" },
-                  { name: "Aim Assist", sub: "Gently pulls your crosshair toward a target" },
-                  { name: "Anti-Bot", sub: "Stops other features targeting fake players" },
-                ].map(m => (
-                  <div key={m.name} onClick={() => setSelectedModule(m.name)} style={{ padding: "8px 10px", borderRadius: 7, background: selectedModule === m.name ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${selectedModule === m.name ? "rgba(255,255,255,0.15)" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", marginBottom: 4 }}>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>{m.name}</span>
-                      <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{m.sub}</span>
-                    </div>
-                    <GuiToggle on={!!moduleStates[m.name]} />
-                  </div>
+            <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 12 }}>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 8 }}>LOAD OUT</span>
+              <div style={{ display: "flex", gap: 3, marginBottom: 8 }}>
+                {Array.from({ length: 12 }).map((_, idx) => (
+                  <div key={idx} style={{ flex: 1, height: 4, borderRadius: 2, background: idx < activeCount ? "var(--acc)" : "rgba(255,255,255,0.08)" }} />
                 ))}
               </div>
-
-              <div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", marginBottom: 6 }}>MOVEMENT 2</span>
-                {[
-                  { name: "Auto Sprint", sub: "Holds sprint for you · Game's own rules" },
-                  { name: "Bridge Assist", sub: "Sneaks early · Holds 25 ms" },
-                ].map(m => (
-                  <div key={m.name} onClick={() => setSelectedModule(m.name)} style={{ padding: "8px 10px", borderRadius: 7, background: selectedModule === m.name ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${selectedModule === m.name ? "rgba(255,255,255,0.15)" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", marginBottom: 4 }}>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>{m.name}</span>
-                      <span style={{ fontSize: 9.5, color: "var(--fg-3)" }}>{m.sub}</span>
-                    </div>
-                    <GuiToggle on={!!moduleStates[m.name]} />
-                  </div>
-                ))}
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--fg-3)", marginBottom: 8 }}>
+                <span>{activeCount} of 12 active</span>
+              </div>
+              <div style={{ fontSize: 10.5, color: "var(--fg-3)", display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}><span>Combat</span><span style={{ color: "#fff" }}>5/5</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}><span>Movement</span><span style={{ color: "#fff" }}>2/2</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}><span>Visual</span><span style={{ color: "#fff" }}>4/4</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}><span>Legit</span><span style={{ color: "#fff" }}>1/1</span></div>
+              </div>
+              <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 10.5, color: "var(--fg-3)" }}>
+                <span>Menu key</span>
+                <span style={{ padding: "2px 6px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 5, color: "#fff", fontWeight: 500 }}>Right Shift</span>
               </div>
             </div>
           </div>
 
-          {/* Column 3: Inspector Panel */}
-          <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", background: "#161616" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.08em" }}>COMBAT</span>
-              <div style={{ cursor: "pointer" }} onClick={(e) => toggleModule(selectedModule, e)}>
-                <GuiToggle on={!!moduleStates[selectedModule]} />
-              </div>
-            </div>
-
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>{selectedModule}</h3>
-            <p style={{ fontSize: 11, color: "var(--fg-3)", margin: "0 0 20px" }}>Clicks for you while you hold left mouse</p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              <div>
-                <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 6 }}>Speed</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#fff", display: "block", marginBottom: 8 }}>Clicks Per Second</span>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <div style={{ padding: "8px 12px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid var(--line)", textAlign: "center" }}>
-                    <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block" }}>Slowest</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{slowestCps}</span>
-                  </div>
-                  <div style={{ padding: "8px 12px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid var(--line)", textAlign: "center" }}>
-                    <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block" }}>Fastest</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{fastestCps}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 8 }}>
-                  <span style={{ color: "var(--fg-3)" }}>Delay</span>
-                  <span style={{ fontWeight: 600, color: "#fff" }}>{delaySec} s</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0.05" 
-                  max="0.5" 
-                  step="0.01" 
-                  value={delaySec} 
-                  onChange={e => setDelaySec(parseFloat(e.target.value))} 
-                  style={{ width: "100%", accentColor: "var(--acc)", cursor: "pointer" }} 
-                />
-              </div>
-
-              <div>
-                <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 8 }}>When It Runs</span>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: "#fff", cursor: "pointer" }}>
-                  <input type="checkbox" checked={swordOnly} onChange={e => setSwordOnly(e.target.checked)} style={{ accentColor: "var(--acc)" }} />
-                  Only With A Sword
-                </label>
-              </div>
-
-              <div style={{ marginTop: 10, padding: 14, borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px dashed var(--line)" }}>
-                <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.08em", display: "block", textAlign: "center", marginBottom: 10 }}>HOW IT BEHAVES</span>
-                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 10.5, color: "var(--fg-2)", display: "flex", flexDirection: "column", gap: 6, lineHeight: 1.4 }}>
-                  <li>Runs while you hold left mouse. Let go to stop.</li>
-                  <li>A fresh speed is drawn from your range for every click.</li>
-                  <li>Waits {delaySec}s after you press before the first click.</li>
-                </ul>
-              </div>
+          <div style={{ marginTop: 14, padding: "9px 11px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 9 }}>
+            <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#222", color: "#fff", display: "grid", placeItems: "center", fontSize: 9.5, fontWeight: 700, border: "1px solid rgba(255,255,255,0.15)" }}>SK</div>
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: "#fff" }}>qinnn</span>
+              <span style={{ fontSize: 9.5, color: "oklch(0.74 0.19 148)", fontWeight: 500 }}>Connected</span>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Column 2: Catalogue */}
+        <div style={{ borderRight: "1px solid rgba(255,255,255,0.07)", padding: "16px 16px", display: "flex", flexDirection: "column", background: "#131313" }}>
+          <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
+            {[
+              { label: "All", count: 12 },
+              { label: "Combat", count: 5 },
+              { label: "Movement", count: 2 },
+              { label: "Visual", count: 4 },
+              { label: "Legit", count: 1 },
+              { label: "Misc", count: 0 },
+            ].map(t => {
+              const fullTag = `${t.label} ${t.count}`;
+              const isSelected = activeTab === t.label || activeTab === fullTag;
+              return (
+                <button 
+                  key={t.label} 
+                  onClick={() => setActiveTab(t.label)} 
+                  style={{ padding: "4px 9px", borderRadius: 6, fontSize: 11, fontWeight: 500, background: isSelected ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.03)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.2)" : "transparent"}`, color: isSelected ? "#fff" : "var(--fg-3)", cursor: "pointer", transition: "all .12s" }}>
+                  {t.label} <span style={{ opacity: 0.6, fontSize: 10 }}>{t.count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", marginBottom: 12 }}>
+            CATALOGUE · {filteredModules.length} shown · All modules
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, overflowY: "auto", paddingRight: 2 }}>
+            {["Combat", "Movement", "Visual"].map(catName => {
+              const modsInCat = filteredModules.filter(m => m.cat === catName);
+              if (modsInCat.length === 0) return null;
+              return (
+                <div key={catName}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", display: "block", marginBottom: 7 }}>
+                    {catName.toUpperCase()} {modsInCat.length}
+                  </span>
+                  {modsInCat.map(m => {
+                    const isSelected = selectedModule === m.name;
+                    const isOn = !!moduleStates[m.name];
+                    return (
+                      <div 
+                        key={m.name} 
+                        onClick={() => setSelectedModule(m.name)} 
+                        style={{ padding: "10px 12px", borderRadius: 8, background: isSelected ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.025)", border: `1px solid ${isSelected ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.04)"}`, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", marginBottom: 5, transition: "all .12s" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#ffffff" }}>{m.name}</span>
+                          <span style={{ fontSize: 10, color: "var(--fg-3)" }}>{m.sub}</span>
+                        </div>
+                        <GuiToggle on={isOn} />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Column 3: Inspector Panel */}
+        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", background: "#111111" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.09em", textTransform: "uppercase" }}>
+              {currentModObj.cat}
+            </span>
+            <div style={{ cursor: "pointer" }} onClick={(e) => toggleModule(currentModObj.name, e)}>
+              <GuiToggle on={!!moduleStates[currentModObj.name]} />
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: "#ffffff", margin: "0 0 4px", letterSpacing: "-.02em" }}>{currentModObj.name}</h3>
+          <p style={{ fontSize: 11.5, color: "var(--fg-3)", margin: "0 0 24px" }}>{currentModObj.desc}</p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            <div>
+              <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 4 }}>Speed</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: "#ffffff", display: "block", marginBottom: 10 }}>Clicks Per Second</span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+                  <span style={{ fontSize: 10.5, color: "var(--fg-3)", display: "block", marginBottom: 2 }}>Slowest</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff" }}>{slowestCps}</span>
+                </div>
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+                  <span style={{ fontSize: 10.5, color: "var(--fg-3)", display: "block", marginBottom: 2 }}>Fastest</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#ffffff" }}>{fastestCps}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, marginBottom: 10 }}>
+                <span style={{ color: "var(--fg-3)" }}>Delay</span>
+                <span style={{ fontWeight: 600, color: "#ffffff" }}>{delaySec} s</span>
+              </div>
+              <input 
+                type="range" 
+                min="0.05" 
+                max="0.5" 
+                step="0.01" 
+                value={delaySec} 
+                onChange={e => setDelaySec(parseFloat(e.target.value))} 
+                style={{ width: "100%", accentColor: "var(--acc)", cursor: "pointer" }} 
+              />
+            </div>
+
+            <div>
+              <span style={{ fontSize: 10, color: "var(--fg-3)", display: "block", marginBottom: 10 }}>When It Runs</span>
+              <label style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, color: "#ffffff", cursor: "pointer", userSelect: "none" }}>
+                <input 
+                  type="checkbox" 
+                  checked={swordOnly} 
+                  onChange={e => setSwordOnly(e.target.checked)} 
+                  style={{ accentColor: "var(--acc)", width: 14, height: 14, cursor: "pointer" }} 
+                />
+                Only With A Sword
+              </label>
+            </div>
+
+            <div style={{ marginTop: 6, padding: 16, borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px dashed rgba(255,255,255,0.12)" }}>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--fg-3)", letterSpacing: "0.1em", display: "block", textAlign: "center", marginBottom: 12 }}>HOW IT BEHAVES</span>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: "var(--fg-2)", display: "flex", flexDirection: "column", gap: 7, lineHeight: 1.45 }}>
+                <li>Runs while you hold left mouse. Let go to stop.</li>
+                <li>A fresh speed is drawn from your range for every click.</li>
+                <li>Waits {delaySec}s after you press before the first click.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
