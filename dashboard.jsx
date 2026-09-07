@@ -82,6 +82,7 @@ function DashIcon({ name, size = 14 }) {
     case "compose":  return <svg {...props}><path d="M2 13l1.5-4 7-7 3 3-7 7L2 13zM9 4l3 3"/></svg>;
     case "license":  return <svg {...props}><circle cx="5" cy="8" r="2.2"/><path d="M7.2 8h6m-2.5 0v2.5m2.5-2.5v3.2"/></svg>;
     case "device":   return <svg {...props}><rect x="2.5" y="3" width="11" height="7" rx="1"/><path d="M5 13h6M8 10v3"/></svg>;
+    case "download": return <svg {...props}><path d="M8 2v7.5M5 7l3 3 3-3M3 13h10"/></svg>;
     case "cog":      return <svg {...props}><circle cx="8" cy="8" r="2"/><path d="M8 1.5v1.8M8 12.7v1.8M14.5 8h-1.8M3.3 8H1.5M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3M12.6 12.6l-1.3-1.3M4.7 4.7L3.4 3.4"/></svg>;
     case "back":     return <svg {...props}><path d="M10 3L4 8l6 5"/></svg>;
     case "signout":  return <svg {...props}><path d="M9 3H4v10h5M11 5l3 3-3 3M14 8H7"/></svg>;
@@ -101,6 +102,7 @@ function UserDashboard({ auth, leave, onBuy, initialTab, justPurchased }) {
   const tabs = [
     { id: "inbox",   label: "Announcements", icon: "inbox", badge: ann.list.length || null },
     { id: "license", label: "License",       icon: "license" },
+    { id: "download",label: "Download",      icon: "download" },
     { id: "devices", label: "Devices",       icon: "device" },
     { id: "security",label: "Security",      icon: "shield" },
   ];
@@ -109,6 +111,7 @@ function UserDashboard({ auth, leave, onBuy, initialTab, justPurchased }) {
     <DashShell auth={auth} onLeave={leave} tab={tab} setTab={setTab} tabs={tabs}>
       {tab === "inbox"    && <UserInbox list={ann.list} email={auth.email} />}
       {tab === "license"  && <UserLicense onBuy={onBuy} justPurchased={justPurchased} />}
+      {tab === "download" && <UserDownload onBuy={onBuy} />}
       {tab === "devices"  && <UserDevices />}
       {tab === "security" && <UserSecurity auth={auth} />}
     </DashShell>
@@ -290,6 +293,140 @@ function UserLicense({ onBuy, justPurchased }) {
               </li>
             ))}
           </ul>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* Download.
+
+   The build, behind the same record the Licence panel reads. `owns` comes from
+   GET /api/entitlement rather than a local flag, so a refunded account loses
+   this on its next page load without anyone deploying anything.
+
+   Be clear about what this gate is. The file sits on the CDN under a URL anyone
+   holding it can pass on, so hiding the button does not make the binary secret
+   — and it does not have to be. The launcher signs in through device
+   authorization and the Worker re-checks hasEntitlement() on approve, refresh
+   and every heartbeat, so a shared .exe is a copy of a program that will not
+   run for an account that has not paid.
+
+   That is true the moment ENTITLEMENT_ENFORCED is "true" in the Worker, and not
+   before. While it is "false" every signed-in account passes that check, so
+   today this button is the only thing standing between a free sign-up and a
+   working client. */
+
+const DOWNLOAD = {
+  url: null,          // "/downloads/Skilled-1.0.0.exe" — null until a build is published
+  name: "Skilled.exe",
+  version: null,      // "1.0.0"
+  size: null,         // "48 MB". Written down rather than measured: a HEAD request
+                      // per render buys nothing a human cannot read off a label.
+  updated: null,      // epoch ms
+};
+
+const FIRST_RUN = [
+  "Run the file. Windows may warn about an unknown publisher — that is SmartScreen not recognising a new signature, not a detection.",
+  "The launcher opens your browser to link the device. Approve it there.",
+  "Pick a version and launch. The session is kept in Windows Credential Manager, so this is once per machine.",
+];
+
+function UserDownload({ onBuy }) {
+  const { ent, loading } = useEntitlement(true);
+
+  if (loading) {
+    return (
+      <>
+        <DashHead title="Download" sub="The Windows client." />
+        <p className="small dim">Loading…</p>
+      </>
+    );
+  }
+
+  /* Same reasoning as the Licence panel: an unreachable endpoint is not the
+     same as owning nothing, and saying otherwise starts a panic. */
+  if (!ent) {
+    return (
+      <>
+        <DashHead title="Download" sub="The Windows client." />
+        <div className="dash-empty">
+          <DashIcon name="download" size={28} />
+          <h3>Can't reach the licence server</h3>
+          <p>The download is gated on your licence, and this page can't read it right now. Try again in a minute.</p>
+        </div>
+      </>
+    );
+  }
+
+  const owns = ent.status === "active" || ent.status === "past_due";
+
+  if (!owns) {
+    return (
+      <>
+        <DashHead title="Download" sub="The Windows client." />
+        <div className="dash-empty">
+          <DashIcon name="download" size={28} />
+          <h3>No licence on this account</h3>
+          <p>The client unlocks here as soon as you own a licence, on every machine you sign in on.</p>
+          {onBuy && <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={onBuy}>See plans</button>}
+        </div>
+      </>
+    );
+  }
+
+  /* Entitled, but nothing to hand over yet. Saying so is better than a dead
+     button, and better than hiding a tab the licence says you paid for. */
+  if (!DOWNLOAD.url) {
+    return (
+      <>
+        <DashHead title="Download" sub="The Windows client." />
+        <div className="dash-empty">
+          <DashIcon name="download" size={28} />
+          <h3>No build published yet</h3>
+          <p>Your licence is active. The first build appears here the moment it goes up, and Announcements will say so.</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DashHead title="Download" sub="The Windows client." />
+      <div className="dash-grid-2">
+        <div className="dash-card">
+          <span className="dash-label">Windows</span>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 14 }}>
+            <KV k="Version" v={DOWNLOAD.version || "—"} />
+            <KV k="Size" v={DOWNLOAD.size || "—"} />
+            <KV k="Updated" v={DOWNLOAD.updated ? fmtDate(DOWNLOAD.updated) : "—"} />
+            <KV k="Requires" v="Windows 10 or 11" />
+          </div>
+
+          <a className="btn btn-primary" href={DOWNLOAD.url} download={DOWNLOAD.name}
+             style={{ marginTop: 20 }}>
+            <DashIcon name="download" size={14} />
+            Download {DOWNLOAD.name}
+          </a>
+
+          {ent.status === "past_due" && (
+            <p style={{ marginTop: 16, marginBottom: 0, fontSize: 13.5, lineHeight: 1.55, color: "var(--fg-2)" }}>
+              The last renewal did not go through. This still works for a few days while the card is retried.
+            </p>
+          )}
+        </div>
+
+        <div className="dash-card">
+          <span className="dash-label">First run</span>
+          <ol style={{ margin: "14px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
+            {FIRST_RUN.map((x, i) => (
+              <li key={i} style={{ display: "flex", gap: 10, fontSize: 13.5, lineHeight: 1.5, color: "var(--fg-1)" }}>
+                <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)", flexShrink: 0, paddingTop: 2 }}>{i + 1}</span>
+                {x}
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </>
