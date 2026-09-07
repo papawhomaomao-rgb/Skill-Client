@@ -112,7 +112,36 @@ function ClickGuiShot() {
   const currentModObj = allModules.find(m => m.name === selectedModule) || allModules[0];
 
   return (
-    <div className="frame" style={{ background: "#252626", border: "1px solid rgba(255,255,255,0.09)", boxShadow: "0 24px 70px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)", overflowX: "auto", borderRadius: 12 }}>
+    <div style={{ position: "relative" }}>
+      {/* Floating Ambient Glow Backlight */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          top: "40%", 
+          left: "50%", 
+          transform: "translate(-50%, -50%)", 
+          width: "92%", 
+          height: "85%", 
+          background: "radial-gradient(ellipse at center, var(--acc) 0%, rgba(120, 60, 255, 0.25) 40%, rgba(0, 0, 0, 0) 75%)", 
+          filter: "blur(60px)", 
+          opacity: 0.45, 
+          pointerEvents: "none", 
+          zIndex: 0 
+        }} 
+      />
+
+      <div 
+        className="frame" 
+        style={{ 
+          position: "relative", 
+          zIndex: 1, 
+          background: "#252626", 
+          border: "1px solid rgba(255,255,255,0.12)", 
+          boxShadow: "0 36px 110px -20px rgba(0,0,0,0.95), 0 0 50px -5px var(--acc-soft), 0 0 0 1px rgba(255,255,255,0.1)", 
+          overflowX: "auto", 
+          borderRadius: 14 
+        }}
+      >
       {/* Top Application Header Bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "#2b2c2c", minWidth: 760 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -349,7 +378,8 @@ function ClickGuiShot() {
 
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 /* ─────────── in-game HUD overlay ─────────── */
