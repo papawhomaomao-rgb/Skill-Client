@@ -165,7 +165,7 @@ function App() {
       <ModuleBrowser />
       <Discord />
       <FAQ />
-      <Footer onTerms={() => setTermsOpen(true)} />
+      <Footer onTerms={() => setTermsOpen(true)} onBuy={handleBuySkill} />
 
       <AuthModal open={authOpen} mode={authMode} onClose={() => setAuthOpen(false)} auth={auth} />
       {termsOpen && <TermsPage onClose={() => setTermsOpen(false)} />}

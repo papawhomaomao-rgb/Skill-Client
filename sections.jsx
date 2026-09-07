@@ -289,10 +289,15 @@ function FAQ() {
 
 /* ═══════════ Footer ═══════════ */
 
-function Footer({ onTerms }) {
+function Footer({ onTerms, onBuy }) {
   const cols = [
-    { h: "Product", links: [{ name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy" }] },
-    { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
+    { h: "Product", links: [{ name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy", isBuy: true }] },
+    { h: "Community", links: [
+      { name: "Discord", href: "https://discord.gg/aRF6EwaD7" },
+      { name: "YouTube", href: "https://youtube.com/@skillclient?si=gz11g2o2p9c2ATTs" },
+      { name: "X", href: "https://x.com/SkilledDevs" },
+      { name: "TikTok", href: "https://www.tiktok.com/@skill.v1" }
+    ] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
   return (
@@ -316,6 +321,13 @@ function Footer({ onTerms }) {
                     return <a key={l} href="#" onClick={(e) => { e.preventDefault(); onTerms && onTerms(); }}>{l}</a>;
                   }
                   return <a key={l} href="#">{l}</a>;
+                }
+                if (l.isBuy) {
+                  return (
+                    <a key={l.name} href="#buy" onClick={(e) => { e.preventDefault(); onBuy && onBuy(); }}>
+                      {l.name}
+                    </a>
+                  );
                 }
                 return (
                   <a key={l.name} href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}>
