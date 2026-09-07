@@ -89,6 +89,7 @@ function DashIcon({ name, size = 14 }) {
     case "send":     return <svg {...props} fill="currentColor" stroke="none"><path d="M2 8l12-5-4 12-2-5z"/></svg>;
     case "bolt":     return <svg {...props}><path d="M9 2L4 9h4l-1 5 5-7H8z" fill="currentColor"/></svg>;
     case "shield":   return <svg {...props}><path d="M8 1.5L3 3v5c0 3 2.2 5.5 5 6.5 2.8-1 5-3.5 5-6.5V3z"/></svg>;
+    case "buy":      return <svg {...props}><rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/><path d="M2.5 6.5h11M5.5 9.5h2.5"/></svg>;
     default:         return null;
   }
 }
@@ -101,17 +102,21 @@ function UserDashboard({ auth, leave, onBuy, initialTab, justPurchased }) {
 
   const tabs = [
     { id: "inbox",   label: "Announcements", icon: "inbox", badge: ann.list.length || null },
+    { id: "buy",     label: "Buy",           icon: "buy" },
     { id: "license", label: "License",       icon: "license" },
     { id: "download",label: "Download",      icon: "download" },
     { id: "devices", label: "Devices",       icon: "device" },
     { id: "security",label: "Security",      icon: "shield" },
   ];
 
+  const handleBuy = () => setTab("buy");
+
   return (
     <DashShell auth={auth} onLeave={leave} tab={tab} setTab={setTab} tabs={tabs}>
       {tab === "inbox"    && <UserInbox list={ann.list} email={auth.email} />}
-      {tab === "license"  && <UserLicense onBuy={onBuy} justPurchased={justPurchased} />}
-      {tab === "download" && <UserDownload onBuy={onBuy} />}
+      {tab === "buy"      && <UserBuy auth={auth} />}
+      {tab === "license"  && <UserLicense onBuy={handleBuy} justPurchased={justPurchased} />}
+      {tab === "download" && <UserDownload onBuy={handleBuy} />}
       {tab === "devices"  && <UserDevices />}
       {tab === "security" && <UserSecurity auth={auth} />}
     </DashShell>
@@ -181,6 +186,49 @@ const ENT_INCLUDED = [
   "Launcher sessions, listed under Devices",
   "Discord access",
 ];
+
+function UserBuy({ auth, onRequireAuth }) {
+  const { plans, configured, loading, error } = usePlans();
+  const { start, busy, error: checkoutError } = useCheckout();
+  const signedIn = !!(auth && auth.email);
+  const { ent } = useEntitlement(signedIn);
+
+  const owned = ent && (ent.status === "active" || ent.status === "past_due") ? ent.plan : null;
+  const buy = (id) => (signedIn ? start(id) : onRequireAuth && onRequireAuth());
+
+  return (
+    <>
+      <DashHead title="Buy" sub="One licence. Every module included." />
+      {error ? (
+        <div className="dash-empty">
+          <DashIcon name="buy" size={28} />
+          <h3>Store unreachable</h3>
+          <p>The store is unreachable right now. Try again in a minute or ask in Discord.</p>
+        </div>
+      ) : loading ? (
+        <p className="small dim">Loading plans…</p>
+      ) : (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16, marginTop: 14 }}>
+            {plans.map(p => (
+              <PlanCard key={p.id} plan={p} signedIn={signedIn} owned={owned}
+                        configured={configured} busy={busy === p.id} onBuy={buy} />
+            ))}
+          </div>
+          <p className="small dim" style={{ marginTop: 20 }}>
+            {checkoutError
+              ? <span style={{ color: "oklch(0.75 0.18 25)" }}>{checkoutError}</span>
+              : !configured
+                ? "Checkout opens shortly. The prices above are final."
+                : owned
+                  ? "You already hold an active licence — manage it from your License tab."
+                  : "You will be taken to our payment provider to pay, and returned here. Card details never touch this site."}
+          </p>
+        </>
+      )}
+    </>
+  );
+}
 
 function UserLicense({ onBuy, justPurchased }) {
   const { ent, loading, reload } = useEntitlement(true);

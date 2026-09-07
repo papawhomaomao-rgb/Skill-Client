@@ -370,7 +370,7 @@ function FAQ() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Changelog", href: "#changelog" }, { name: "Pricing", href: "#pricing" }] },
+    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Changelog", href: "#changelog" }, { name: "Buy", href: "#buy" }] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
@@ -412,4 +412,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Features, ModuleBrowser, Changelog, Pricing, Discord, FAQ, Footer });
+Object.assign(window, { Features, ModuleBrowser, Changelog, Pricing, PlanCard, Discord, FAQ, Footer });

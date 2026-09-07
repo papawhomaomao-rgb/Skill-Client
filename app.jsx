@@ -44,7 +44,14 @@ function App() {
     }, 0);
   };
 
-  const handleBuySkill = () => { setView("home"); scrollToPricing(); };
+  const handleBuySkill = () => {
+    if (auth.email) {
+      setDashTab("buy");
+      setView("dashboard");
+    } else {
+      openAuth("signup");
+    }
+  };
 
   // If user signs out from inside the dashboard, kick back to home.
   useEffect(() => { if (!auth.email && view === "dashboard") setView("home"); }, [auth.email, view]);
@@ -116,7 +123,7 @@ function App() {
             <a href="#features">Features</a>
             <a href="#modules">Modules</a>
             <a href="#changelog">Changelog</a>
-            <a href="#pricing">Pricing</a>
+            <a href="#buy" onClick={(e) => { e.preventDefault(); handleBuySkill(); }}>Buy</a>
             <a href="#faq">FAQ</a>
           </div>
           <div className="nav-cta">
@@ -136,7 +143,6 @@ function App() {
       <Features />
       <ModuleBrowser />
       <Changelog />
-      <Pricing auth={auth} onRequireAuth={() => openAuth("signup")} />
       <Discord />
       <FAQ />
       <Footer />
