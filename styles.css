@@ -51,15 +51,15 @@ button{font-family:inherit;cursor:default;border:0;background:none;color:inherit
 
 /* ── nav ── */
 .nav{position:sticky;top:0;z-index:60;background:oklch(0.145 0 0 / 0.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;gap:24px}
-.brand{display:inline-flex;align-items:center;gap:10px;font-size:15.5px;font-weight:600;letter-spacing:-.018em}
+.nav-inner{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:60px;gap:16px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-size:15.5px;font-weight:600;letter-spacing:-.018em;justify-self:start}
 .brand-mark{width:22px;height:22px;border-radius:6px;border:1px solid var(--line-3);display:grid;place-items:center;flex-shrink:0}
 .brand-mark::after{content:"";width:8px;height:8px;border-radius:2px;background:var(--acc)}
-.nav-links{display:flex;gap:2px}
-.nav-links a{padding:6px 12px;border-radius:6px;font-size:13.5px;font-weight:500;color:var(--fg-2);transition:color .12s}
-.nav-links a:hover{color:var(--fg)}
-@media(max-width:900px){.nav-links{display:none}}
-.nav-cta{display:flex;align-items:center;gap:8px}
+.nav-links{display:flex;align-items:center;justify-content:center;gap:6px}
+.nav-links a{padding:6px 14px;border-radius:6px;font-size:13.5px;font-weight:500;color:var(--fg-2);transition:color .12s,background .12s;display:inline-flex;align-items:center}
+.nav-links a:hover{color:var(--fg);background:oklch(1 0 0 / 0.04)}
+@media(max-width:900px){.nav-inner{display:flex;justify-content:space-between}.nav-links{display:none}}
+.nav-cta{display:flex;align-items:center;gap:8px;justify-self:end}
 
 /* ── buttons ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:var(--r);font-size:13.5px;font-weight:500;letter-spacing:-.005em;border:1px solid transparent;transition:background .12s ease,border-color .12s ease,color .12s ease;white-space:nowrap;outline:none}
