@@ -290,6 +290,18 @@ function FAQ() {
 /* ═══════════ Footer ═══════════ */
 
 function Footer({ onTerms, onBuy }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleContact = (e) => {
+    e.preventDefault();
+    const email = "papawhomaomao@gmail.com";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
   const cols = [
     { h: "Product", links: [{ name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy", isBuy: true }] },
     { h: "Community", links: [
@@ -298,7 +310,7 @@ function Footer({ onTerms, onBuy }) {
       { name: "X", href: "https://x.com/SkilledDevs" },
       { name: "TikTok", href: "https://www.tiktok.com/@skill.v1" }
     ] },
-    { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
+    { h: "Legal", links: ["Terms", "Contact"] },
   ];
   return (
     <footer>
@@ -319,6 +331,36 @@ function Footer({ onTerms, onBuy }) {
                 if (typeof l === "string") {
                   if (l === "Terms") {
                     return <a key={l} href="#" onClick={(e) => { e.preventDefault(); onTerms && onTerms(); }}>{l}</a>;
+                  }
+                  if (l === "Contact") {
+                    return (
+                      <div key={l} style={{ position: "relative", display: "inline-block" }}>
+                        <a key={l} href="#" onClick={handleContact}>{l}</a>
+                        {copied && (
+                          <div style={{
+                            position: "absolute",
+                            bottom: "calc(100% + 8px)",
+                            left: 0,
+                            background: "var(--bg-1)",
+                            border: "1px solid var(--line-2)",
+                            color: "var(--fg)",
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            whiteSpace: "nowrap",
+                            boxShadow: "var(--sh-4)",
+                            zIndex: 20,
+                            pointerEvents: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6
+                          }}>
+                            <span style={{ color: "var(--acc)", fontWeight: 600 }}>✓</span>
+                            <span>Our email has been copied to your clipboard</span>
+                          </div>
+                        )}
+                      </div>
+                    );
                   }
                   return <a key={l} href="#">{l}</a>;
                 }
