@@ -1,44 +1,7 @@
 // sections.jsx — Features, Modules, Changelog, Download, Discord, FAQ, Footer
 const { useState, useMemo } = React;
 
-/* ═══════════ Features ═══════════ */
 
-function FeatureIcon({ name }) {
-  const p = { viewBox: "0 0 20 20", fill: "none", stroke: "var(--acc)", strokeWidth: 1.5, style: { width: 18, height: 18 } };
-  switch (name) {
-    case "gui":    return <svg {...p}><rect x="2.5" y="3" width="15" height="14" rx="2"/><path d="M7.5 3v14M2.5 7h5"/></svg>;
-    case "cloud":  return <svg {...p}><path d="M6.5 14H5a3.5 3.5 0 0 1 .6-6.95A5 5 0 0 1 15.5 8a3 3 0 0 1 .5 6h-2.5"/><path d="M10 10v6m0 0-2-2m2 2 2-2"/></svg>;
-    case "script": return <svg {...p}><path d="M7.5 5 4 10l3.5 5M12.5 5l3.5 5-3.5 5"/></svg>;
-    default: return null;
-  }
-}
-
-function Features() {
-  const cards = [
-    { icon: "gui",    title: "An interface that respects you", body: "Search-first navigation, keyboard shortcuts for every action, and a module list you can read at a glance. No animation gimmicks, nothing on screen that gives you away in a screenshare.", meta: "Right Shift to open" },
-    { icon: "cloud",  title: "Configs that follow you around", body: "Every profile you save syncs the moment you save it. Reinstall Windows, move to a new PC, or hand a friend a link — your setup is there the next time you launch.", meta: "One device per account" },
-    { icon: "script", title: "A real scripting API",           body: "Write your own modules in JavaScript against the same API the built-in ones use. Hot-reload while the game runs, no recompile and no restart.", meta: "JavaScript, hot-reloaded" },
-  ];
-
-  return (
-    <section id="features" className="sec">
-      <div className="shell">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(288px,1fr))", gap: 16 }}>
-          {cards.map(c => (
-            <div key={c.title} className="card card-hover pad" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, background: "oklch(1 0 0 / 0.04)", border: "1px solid var(--line-2)", display: "grid", placeItems: "center" }}>
-                <FeatureIcon name={c.icon} />
-              </div>
-              <h3 className="h3">{c.title}</h3>
-              <p className="body" style={{ flex: 1 }}>{c.body}</p>
-              <span className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)", paddingTop: 14, borderTop: "1px solid var(--line)" }}>{c.meta}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ═══════════ Modules ═══════════ */
 
@@ -328,7 +291,7 @@ function FAQ() {
 
 function Footer() {
   const cols = [
-    { h: "Product", links: [{ name: "Features", href: "#features" }, { name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy" }] },
+    { h: "Product", links: [{ name: "Modules", href: "#modules" }, { name: "Buy", href: "#buy" }] },
     { h: "Community", links: [{ name: "Discord", href: "https://discord.gg/aRF6EwaD7" }, { name: "YouTube", href: "#" }, { name: "X", href: "#" }, { name: "TikTok", href: "#" }] },
     { h: "Legal", links: ["Terms", "Privacy", "Contact"] },
   ];
@@ -370,4 +333,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Features, ModuleBrowser, Pricing, PlanCard, Discord, FAQ, Footer });
+Object.assign(window, { ModuleBrowser, Pricing, PlanCard, Discord, FAQ, Footer });
