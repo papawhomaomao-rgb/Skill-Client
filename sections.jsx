@@ -306,37 +306,17 @@ function Pricing({ auth, onRequireAuth }) {
 /* ═══════════ Discord ═══════════ */
 
 function Discord() {
-  const msgs = [
-    { u: "ven",   ch: "announcements",   t: "12m", c: "var(--fg)",   msg: "1.0.4 is live. Antibot retuned, configs unaffected." },
-    { u: "kael",  ch: "configs-bedwars", t: "1h",  c: "var(--fg-1)", msg: "Uploaded ranked-bw-v4 — slower attack, tighter strafe." },
-    { u: "miso",  ch: "bug-reports",     t: "3h",  c: "var(--fg-1)", msg: "Scaffold drift on Lunar, server #42. Looking now." },
-    { u: "rin",   ch: "general",         t: "5h",  c: "var(--fg-1)", msg: "Freelook alone is worth the install." },
-  ];
   return (
     <section id="discord" className="sec" style={{ paddingTop: 0 }}>
       <div className="shell">
-        <div className="card" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", overflow: "hidden" }}>
-          <div style={{ padding: "44px 40px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
-            <span className="eyebrow" style={{ margin: 0 }}><span className="bead" />Community</span>
-            <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Support happens in Discord.</h2>
-            <p className="body">Bug reports, shared configs, ranked queues, and direct contact with the people writing the code. Tickets get triaged in minutes, not days.</p>
-            <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg" style={{ alignSelf: "flex-start", marginTop: 6 }}>
-              <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 15, height: 15 }}><path d="M13.5 3a13.4 13.4 0 0 0-3.3-1l-.2.3a12 12 0 0 0-4 0l-.2-.3a13.4 13.4 0 0 0-3.3 1A14 14 0 0 0 .3 11a13.5 13.5 0 0 0 4 2l.3-.4a8.6 8.6 0 0 1-1.4-.7c.1-.1.2-.2.3-.2a9.6 9.6 0 0 0 8.2 0l.3.2a8.6 8.6 0 0 1-1.4.7l.4.4a13.5 13.5 0 0 0 4-2 13.9 13.9 0 0 0-2.4-8ZM5.4 9.4c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Zm5.2 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Z"/></svg>
-              Join the Discord
-            </a>
-          </div>
-          <div style={{ borderLeft: "1px solid var(--line)", padding: 24, display: "flex", flexDirection: "column", gap: 10, background: "oklch(0 0 0 / 0.18)" }}>
-            {msgs.map((m, i) => (
-              <div key={i} style={{ padding: "13px 15px", borderRadius: 8, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line)", display: "flex", flexDirection: "column", gap: 5 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: m.c }}>{m.u}</span>
-                  <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)" }}>#{m.ch}</span>
-                  <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)", marginLeft: "auto" }}>{m.t}</span>
-                </div>
-                <span style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--fg-1)" }}>{m.msg}</span>
-              </div>
-            ))}
-          </div>
+        <div className="card pad" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", maxWidth: 720, margin: "0 auto", padding: "52px 40px", gap: 20 }}>
+          <span className="eyebrow" style={{ margin: 0 }}><span className="bead" />Community</span>
+          <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Support happens in Discord.</h2>
+          <p className="body" style={{ maxWidth: 540 }}>Bug reports, shared configs, ranked queues, and direct contact with the people writing the code. Tickets get triaged in minutes, not days.</p>
+          <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg" style={{ marginTop: 8 }}>
+            <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 15, height: 15 }}><path d="M13.5 3a13.4 13.4 0 0 0-3.3-1l-.2.3a12 12 0 0 0-4 0l-.2-.3a13.4 13.4 0 0 0-3.3 1A14 14 0 0 0 .3 11a13.5 13.5 0 0 0 4 2l.3-.4a8.6 8.6 0 0 1-1.4-.7c.1-.1.2-.2.3-.2a9.6 9.6 0 0 0 8.2 0l.3.2a8.6 8.6 0 0 1-1.4.7l.4.4a13.5 13.5 0 0 0 4-2 13.9 13.9 0 0 0-2.4-8ZM5.4 9.4c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Zm5.2 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6c0 .9-.6 1.6-1.4 1.6Z"/></svg>
+            Join the Discord
+          </a>
         </div>
       </div>
     </section>
