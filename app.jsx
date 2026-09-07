@@ -87,6 +87,11 @@ function App() {
     r.style.setProperty("--acc-line", a.line);
   }, [t.accent]);
 
+  // Tracks whether this browser/account has agreed to terms.
+  const [termsAgreed, setTermsAgreed] = React.useState(() => hasAgreedToTerms(auth.email));
+  // Re-check whenever the signed-in email changes (sign-in, sign-out, or account switch).
+  useEffect(() => { setTermsAgreed(hasAgreedToTerms(auth.email)); }, [auth.email]);
+
   const toast = checkout && (
     <div className="toast" onClick={() => setCheckout(null)} style={{ cursor: "pointer", fontSize: 13.5 }}>
       {checkout === "done"
@@ -95,6 +100,24 @@ function App() {
       <span style={{ color: "var(--fg-3)", fontSize: 12 }}>Dismiss</span>
     </div>
   );
+
+  // Block everything until signed-in user agrees to terms.
+  if (auth.email && !auth.loading && !termsAgreed) {
+    return (
+      <>
+        <TermsGate email={auth.email} onAgreed={() => setTermsAgreed(true)} />
+        <TweaksPanel>
+          <TweakSection label="Accent" />
+          <TweakColor
+            label="Colour"
+            value={ACCENTS[t.accent].acc}
+            options={[ACCENTS.violet.acc, ACCENTS.blue.acc, ACCENTS.green.acc, ACCENTS.red.acc]}
+            onChange={(v) => setTweak("accent", Object.keys(ACCENTS).find(k => ACCENTS[k].acc === v) || "violet")}
+          />
+        </TweaksPanel>
+      </>
+    );
+  }
 
   if (view === "dashboard" && auth.email) {
     return (

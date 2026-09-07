@@ -1,4 +1,4 @@
-﻿// terms.jsx — Terms of Service page
+// terms.jsx — Terms of Service page
 
 function TermsPage({ onClose }) {
   const EFFECTIVE = "September 6, 2025";
@@ -152,4 +152,164 @@ function TermsPage({ onClose }) {
   );
 }
 
-Object.assign(window, { TermsPage });
+/* ─────────── TermsGate — mandatory one-time agreement ─────────── */
+
+const TERMS_KEY = (email) => `skill:terms_agreed:${(email || "").toLowerCase()}`;
+
+function hasAgreedToTerms(email) {
+  try { return !!localStorage.getItem(TERMS_KEY(email)); } catch { return false; }
+}
+
+function recordTermsAgreement(email) {
+  try { localStorage.setItem(TERMS_KEY(email), String(Date.now())); } catch {}
+}
+
+function TermsGate({ email, onAgreed }) {
+  const { useState: useS, useRef: useR } = React;
+  const [scrolled, setScrolled] = useS(false);
+  const [checked, setChecked] = useS(false);
+  const bodyRef = useR(null);
+
+  const EFFECTIVE = "September 6, 2025";
+
+  const onScroll = () => {
+    const el = bodyRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) setScrolled(true);
+  };
+
+  const agree = () => {
+    if (!checked) return;
+    recordTermsAgreement(email);
+    onAgreed && onAgreed();
+  };
+
+  const Section = ({ title, children }) => (
+    <div style={{ marginBottom: 28 }}>
+      <h2 style={{ fontSize: 14, fontWeight: 650, letterSpacing: "-.016em", color: "var(--fg)", marginBottom: 10, paddingBottom: 8, borderBottom: "1px solid var(--line)" }}>
+        {title}
+      </h2>
+      <div style={{ fontSize: 13.5, lineHeight: 1.75, color: "var(--fg-1)", display: "flex", flexDirection: "column", gap: 8 }}>
+        {children}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 500,
+      background: "oklch(0.06 0 0 / 0.92)",
+      display: "grid", placeItems: "center", padding: "24px 16px",
+    }}>
+      <div style={{
+        width: "100%", maxWidth: 660,
+        borderRadius: 14, background: "var(--bg-1)",
+        border: "1px solid var(--line-2)",
+        boxShadow: "0 24px 60px -12px oklch(0 0 0 / 0.7)",
+        display: "flex", flexDirection: "column",
+        maxHeight: "90vh", overflow: "hidden",
+        animation: "auth-rise .25s cubic-bezier(.2,.8,.2,1)",
+      }}>
+
+        {/* Header */}
+        <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid var(--line)", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <div className="brand-mark" style={{ width: 24, height: 24 }}></div>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-.022em" }}>Terms of Service</span>
+            <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--fg-3)", background: "oklch(1 0 0 / 0.05)", border: "1px solid var(--line)", borderRadius: 6, padding: "2px 8px" }}>Required</span>
+          </div>
+          <p style={{ fontSize: 12.5, color: "var(--fg-3)", lineHeight: 1.5 }}>
+            Before continuing, please read and agree to our Terms of Service. This is a one-time step.
+          </p>
+        </div>
+
+        {/* Scrollable body */}
+        <div ref={bodyRef} onScroll={onScroll} style={{ padding: "24px 28px 8px", overflowY: "auto", flex: 1 }}>
+
+          <p style={{ fontSize: 13, lineHeight: 1.7, color: "var(--fg-2)", marginBottom: 24, padding: "12px 14px", borderRadius: 8, background: "oklch(1 0 0 / 0.03)", border: "1px solid var(--line)" }}>
+            Effective: {EFFECTIVE}. These Terms apply to all use of Skill, including this account.
+          </p>
+
+          <Section title="1. No Cracking or Reverse Engineering">
+            <p>You may not crack, decompile, disassemble, or reverse engineer Skill or any of its components. You may not bypass, circumvent, or remove any licence validation, authentication, entitlement check, or security mechanism. Accounts found cracking will be permanently banned without refund, and we reserve the right to pursue civil and criminal remedies.</p>
+          </Section>
+
+          <Section title="2. No Redistribution">
+            <p>Your licence is personal, non-transferable, and non-sublicensable. You may not redistribute, resell, share, torrent, or otherwise distribute Skill's files, installer, or any modified version. You may not share your account credentials or operate any loader or wrapper that distributes Skill without authorisation. Violations result in immediate account termination and potential legal action.</p>
+          </Section>
+
+          <Section title="3. No Fraud or Abuse">
+            <p>You agree not to initiate fraudulent chargebacks, use stolen payment methods, impersonate Skill staff, create multiple accounts to circumvent restrictions, or exploit any promotional system. Fraudulent chargebacks lead to permanent account suspension and debt recovery proceedings.</p>
+          </Section>
+
+          <Section title="4. Acceptable Use">
+            <p>Skill is for personal use only. You agree not to use it in any way that violates applicable laws, harms third parties, or disrupts our infrastructure.</p>
+          </Section>
+
+          <Section title="5. Account Responsibility">
+            <p>You are solely responsible for maintaining the confidentiality of your credentials. Any activity under your account is your responsibility. Notify us immediately of any unauthorised access.</p>
+          </Section>
+
+          <Section title="6. Termination">
+            <p>We may suspend or permanently terminate your account for any violation of these Terms, at our sole discretion, with or without notice. Licences associated with terminated accounts are voided. Refunds on termination for cause are not guaranteed.</p>
+          </Section>
+
+          <Section title="7. Disclaimers &amp; Liability">
+            <p>Skill is provided "as is" without warranties of any kind. To the maximum extent permitted by law, we are not liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
+          </Section>
+
+          <Section title="8. Changes">
+            <p>We may update these Terms. Continued use of Skill after changes are posted constitutes acceptance. Material changes will be communicated via the website or your account email.</p>
+          </Section>
+
+          {/* Scroll hint */}
+          {!scrolled && (
+            <div style={{ textAlign: "center", padding: "8px 0 16px", fontSize: 11.5, color: "var(--fg-3)" }}>
+              ↓ Scroll to the bottom to continue
+            </div>
+          )}
+        </div>
+
+        {/* Footer — agreement */}
+        <div style={{ padding: "16px 28px 22px", borderTop: "1px solid var(--line)", flexShrink: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+
+          <label style={{
+            display: "flex", alignItems: "flex-start", gap: 10, cursor: scrolled ? "pointer" : "not-allowed",
+            opacity: scrolled ? 1 : 0.45, transition: "opacity .2s",
+          }}>
+            <input
+              type="checkbox"
+              checked={checked}
+              disabled={!scrolled}
+              onChange={(e) => setChecked(e.target.checked)}
+              style={{ marginTop: 2, width: 15, height: 15, accentColor: "var(--acc)", cursor: "inherit", flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 13, lineHeight: 1.55, color: "var(--fg-1)" }}>
+              I have read and agree to the Skill Terms of Service, including the policies on no cracking, no redistribution, and no fraud.
+            </span>
+          </label>
+
+          <button
+            onClick={agree}
+            disabled={!checked}
+            className="btn btn-primary"
+            style={{
+              width: "100%", height: 42, fontSize: 14, fontWeight: 650,
+              opacity: checked ? 1 : 0.4,
+              cursor: checked ? "pointer" : "not-allowed",
+              transition: "opacity .2s",
+            }}
+          >
+            I Agree — Continue to Skill
+          </button>
+
+          <p style={{ fontSize: 11, color: "var(--fg-3)", textAlign: "center", lineHeight: 1.5 }}>
+            You must agree to use Skill. Closing this page without agreeing will keep you signed out.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { TermsPage, TermsGate, hasAgreedToTerms });
