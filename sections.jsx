@@ -79,7 +79,7 @@ function ModuleBrowser() {
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 32, flexWrap: "wrap", marginBottom: 32 }}>
           <div style={{ maxWidth: 520 }}>
             <span className="eyebrow"><span className="bead" />Modules</span>
-            <h2 className="h2">Fourteen modules. Every one of them bound for a reason.</h2>
+            <h2 className="h2">14 modules all undetectable</h2>
           </div>
           <div style={{ position: "relative", width: 260, maxWidth: "100%" }}>
             <svg viewBox="0 0 16 16" fill="none" stroke="var(--fg-3)" strokeWidth="1.4" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, pointerEvents: "none" }}>
