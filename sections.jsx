@@ -109,7 +109,7 @@ function ModuleBrowser() {
      configured    buy. */
 
 const INCLUDED = [
-  "Every module — no tiers, nothing paywalled",
+  "Every module, no tiers, nothing paywalled",
   "ConfigCloud sync",
   "Discord support",
 ];
@@ -146,7 +146,7 @@ function PlanCard({ plan, signedIn, owned, configured, busy, onBuy }) {
 
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
         {INCLUDED.concat(
-          recurring ? "Cancel any time — access runs to the end of the period"
+          recurring ? "Cancel any time, access runs to the end of the period"
                     : "Every future module, at no extra cost"
         ).map(x => (
           <li key={x} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: "var(--fg-1)" }}>
@@ -186,7 +186,7 @@ function Pricing({ auth, onRequireAuth }) {
         <div className="sec-head center">
           <span className="eyebrow" style={{ justifyContent: "center" }}><span className="bead" />Pricing</span>
           <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>One licence. Every module.</h2>
-          <p className="lead">No tiers, no paywalled modules, no nag screens. Buy it once or pay monthly — both unlock all fourteen.</p>
+          <p className="lead">No tiers, no paywalled modules, no nag screens. Buy it once or pay monthly. Both unlock all fourteen.</p>
         </div>
 
         {error ? (
@@ -214,7 +214,7 @@ function Pricing({ auth, onRequireAuth }) {
                 : !configured
                   ? "Checkout opens shortly. The prices above are final."
                   : owned
-                    ? "You already hold a licence — manage it from your dashboard."
+                    ? "You already hold a licence. Manage it from your dashboard."
                     : "You will be taken to our payment provider to pay, and returned here. Card details never touch this site."}
             </p>
           </>
@@ -247,10 +247,10 @@ function Discord() {
 /* ═══════════ FAQ ═══════════ */
 
 const FAQS = [
-  { q: "How does licensing work?", a: "One licence covers your account. Every module is included — there are no tiers and no premium-only features. Sign in on the website, approve your launcher once, and the licence is tied to that machine." },
+  { q: "How does licensing work?", a: "One licence covers your account. Every module is included, there are no tiers and no premium-only features. Sign in on the website, approve your launcher once, and the licence is tied to that machine." },
   { q: "Is it detectable on Hypixel?", a: "No client is permanently undetected, and anyone who tells you otherwise is selling something. We rebuild the detection-sensitive parts regularly and patch quickly when a wave lands. Treat any client as a risk to the account you use it on." },
   { q: "Which versions are supported?", a: "Minecraft 1.8.9 and 1.7.10 on Windows, across Vanilla, Forge, LabyMod, Lunar and Badlion (not BAC). Those are where the competitive scene still plays, so that's where we focus." },
-  { q: "Do I need an account?", a: "Yes — the account links your device and powers config sync. Signup takes about thirty seconds and needs nothing but an email address." },
+  { q: "Do I need an account?", a: "Yes, the account links your device and powers config sync. Signup takes about thirty seconds and needs nothing but an email address." },
   { q: "Can I share my account?", a: "No. One account, one device. Sharing is detected automatically and gets the account revoked." },
 ];
 
@@ -262,7 +262,7 @@ function FAQ() {
         <div style={{ position: "sticky", top: 100 }}>
           <span className="eyebrow"><span className="bead" />FAQ</span>
           <h2 className="h2" style={{ fontSize: "clamp(28px,2.8vw,40px)" }}>Questions worth answering.</h2>
-          <p className="body" style={{ marginTop: 16, maxWidth: 280 }}>Anything else, ask in <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-1)", textDecoration: "underline", textUnderlineOffset: 3 }}>Discord</a> — first reply is usually inside fifteen minutes.</p>
+          <p className="body" style={{ marginTop: 16, maxWidth: 280 }}>Anything else, ask in <a href="https://discord.gg/aRF6EwaD7" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-1)", textDecoration: "underline", textUnderlineOffset: 3 }}>Discord</a>, first reply is usually inside fifteen minutes.</p>
         </div>
         <div className="card" style={{ overflow: "hidden" }}>
           {FAQS.map((it, i) => {

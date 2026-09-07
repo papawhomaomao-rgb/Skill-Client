@@ -95,7 +95,7 @@ function App() {
   const toast = checkout && (
     <div className="toast" onClick={() => setCheckout(null)} style={{ cursor: "pointer", fontSize: 13.5 }}>
       {checkout === "done"
-        ? "Payment complete — thank you. Your licence is on the dashboard."
+        ? "Payment complete. Thank you, your licence is on the dashboard."
         : "Checkout cancelled. Nothing was charged."}
       <span style={{ color: "var(--fg-3)", fontSize: 12 }}>Dismiss</span>
     </div>

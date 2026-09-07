@@ -79,7 +79,7 @@ function TermsPage({ onClose }) {
               <li>Share, sell, or give away your account credentials to another person.</li>
               <li>Create or operate any public or private loader, injector, or wrapper that distributes Skill's functionality without authorisation.</li>
             </ul>
-            <p>Redistribution of Skill in any form — paid or free — is strictly prohibited. Violations will result in immediate account termination, revocation of your licence, and legal action where appropriate.</p>
+            <p>Redistribution of Skill in any form (paid or free) is strictly prohibited. Violations will result in immediate account termination, revocation of your licence, and legal action where appropriate.</p>
           </Section>
 
           <Section title="4. No Fraud or Abuse">
@@ -300,7 +300,7 @@ function TermsGate({ email, onAgreed }) {
               transition: "opacity .2s",
             }}
           >
-            I Agree — Continue to Skill
+            I Agree, Continue to Skill
           </button>
 
           <p style={{ fontSize: 11, color: "var(--fg-3)", textAlign: "center", lineHeight: 1.5 }}>

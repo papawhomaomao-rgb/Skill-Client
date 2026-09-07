@@ -181,7 +181,7 @@ const ENT_STATUS = {
 const PLAN_LABEL = { lifetime: "Lifetime", monthly: "Monthly", staff: "Staff" };
 
 const ENT_INCLUDED = [
-  "Every module — no tiers, nothing paywalled",
+  "Every module, no tiers, nothing paywalled",
   "ConfigCloud sync",
   "Launcher sessions, listed under Devices",
   "Discord access",
@@ -221,7 +221,7 @@ function UserBuy({ auth, onRequireAuth }) {
               : !configured
                 ? "Checkout opens shortly. The prices above are final."
                 : owned
-                  ? "You already hold an active licence — manage it from your License tab."
+                  ? "You already hold an active licence. Manage it from your License tab."
                   : "You will be taken to our payment provider to pay, and returned here. Card details never touch this site."}
           </p>
         </>
@@ -263,7 +263,7 @@ function UserLicense({ onBuy, justPurchased }) {
         <div className="dash-empty">
           <DashIcon name="license" size={28} />
           <h3>Can't reach the licence server</h3>
-          <p>Your access is unaffected — this panel just can't read the record right now. Try again in a minute.</p>
+          <p>Your access is unaffected. This panel just can't read the record right now. Try again in a minute.</p>
         </div>
       </>
     );
@@ -275,7 +275,7 @@ function UserLicense({ onBuy, justPurchased }) {
 
   const notice =
     waiting
-      ? "Payment received. Your licence normally appears within a few seconds — this page is watching for it."
+      ? "Payment received. Your licence normally appears within a few seconds. This page is watching for it."
     : ent.status === "past_due"
       ? "The last renewal did not go through. Access continues for a few days while the card is retried; the receipt email has the link to fix it."
     : ent.status === "refunded" || ent.status === "revoked"
@@ -375,7 +375,7 @@ const DOWNLOAD = {
 };
 
 const FIRST_RUN = [
-  "Run the file. Windows may warn about an unknown publisher — that is SmartScreen not recognising a new signature, not a detection.",
+  "Run the file. Windows may warn about an unknown publisher. That is SmartScreen not recognising a new signature, not a detection.",
   "The launcher opens your browser to link the device. Approve it there.",
   "Pick a version and launch. The session is kept in Windows Credential Manager, so this is once per machine.",
 ];
@@ -519,7 +519,7 @@ function UserDevices() {
             {!loading && sessions.length > 0 && (
               <tr>
                 <td colSpan="6" style={{ color: "var(--fg-3)", fontSize: 13 }}>
-                  Each row is one launcher sign-in. Signing one out revokes its token — the client ejects on its next heartbeat, or when that machine is next online.
+                  Each row is one launcher sign-in. Signing one out revokes its token. The client ejects on its next heartbeat, or when that machine is next online.
                 </td>
               </tr>
             )}
@@ -576,7 +576,7 @@ function UserSecurity({ auth }) {
         <div className="dash-card" style={{ borderColor: "oklch(0.78 0.18 25 / 0.3)" }}>
           <span className="dash-label" style={{ color: "oklch(0.78 0.18 25)" }}>Sign out everywhere</span>
           <p style={{ marginTop: 10, color: "var(--fg-2)", fontSize: 13.5, lineHeight: 1.55 }}>
-            Revokes every launcher session on this account. The client ejects on its next heartbeat —
+            Revokes every launcher session on this account. The client ejects on its next heartbeat:
             about fifteen seconds on a machine that is online, and the moment it reconnects on one that is not.
           </p>
           <button
@@ -688,7 +688,7 @@ function DevBuyers({ users }) {
           <tbody>
             {filtered.length === 0 && (
               <tr><td colSpan="6" style={{ textAlign: "center", padding: 40, color: "var(--fg-3)" }}>
-                {users.length === 0 ? "No accounts yet — sign up a buyer to see them here." : `No accounts match "${q}".`}
+                {users.length === 0 ? "No accounts yet, sign up a buyer to see them here." : `No accounts match "${q}".`}
               </td></tr>
             )}
             {filtered.map(u => {
@@ -705,9 +705,9 @@ function DevBuyers({ users }) {
                       ? <span style={{ color: "var(--acc)", fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase" }}>● Dev</span>
                       : <span style={{ color: "var(--fg-2)", fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase" }}>Buyer</span>}
                   </td>
-                  <td className="mono" style={{ fontSize: 12, color: "var(--fg-2)" }}>{u.createdAt ? fmtDate(u.createdAt) : "—"}</td>
+                  <td className="mono" style={{ fontSize: 12, color: "var(--fg-2)" }}>{u.createdAt ? fmtDate(u.createdAt) : "None"}</td>
                   <td className="mono" style={{ fontSize: 12, color: isLive ? "var(--acc)" : "var(--fg-2)" }}>
-                    {isLive ? <><span className="dot-live" />now</> : (u.lastSeen ? fmtTime(u.lastSeen) : "—")}
+                    {isLive ? <><span className="dot-live" />now</> : (u.lastSeen ? fmtTime(u.lastSeen) : "None")}
                   </td>
                   <td className="mono" style={{ textAlign: "right", fontSize: 12, color: u.sessions ? "var(--fg-1)" : "var(--fg-3)" }}>
                     {u.sessions || 0}
@@ -745,8 +745,8 @@ function DevCompose({ ann, from, buyerCount }) {
 
   const templates = [
     { name: "Release",  body: "v3.7.2 is live. AntiBot retuned for ranked bedwars. ConfigCloud syncs faster on cold launch. Update via the launcher." },
-    { name: "Outage",   body: "ConfigCloud is degraded — sync may take up to 5 minutes. We're working on it. No action needed." },
-    { name: "Security", body: "If you see anyone selling Skill licenses outside skill.gg, they're scams. Buy only from our store. Watchdog wave is rumored — keep Self Destruct bound." },
+    { name: "Outage",   body: "ConfigCloud is degraded, sync may take up to 5 minutes. We're working on it. No action needed." },
+    { name: "Security", body: "If you see anyone selling Skill licenses outside skill.gg, they're scams. Buy only from our store. Watchdog wave is rumored, keep Self Destruct bound." },
   ];
 
   return (
@@ -778,7 +778,7 @@ function DevCompose({ ann, from, buyerCount }) {
           ref={taRef}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Write something to your buyers… Release notes, outages, security advisories. Markdown isn't parsed — keep it short and direct."
+          placeholder="Write something to your buyers… Release notes, outages, security advisories. Markdown isn't parsed. Keep it short and direct."
           style={{
             width: "100%", minHeight: 180, padding: 20,
             background: "transparent", border: 0,
