@@ -294,7 +294,7 @@ function Footer({ onTerms, onBuy }) {
 
   const handleContact = (e) => {
     e.preventDefault();
-    const email = "papawhomaomao@gmail.com";
+    const email = "skilledexploits@gmail.com";
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(email);
     }
