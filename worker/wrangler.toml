@@ -10,6 +10,31 @@ binding = "SKILLED"
 id = "c058e550df6f4d028d7e31043f5d42ae"
 preview_id = "6ac1d32aaf7c4a32811a46939fb5b03c"
 
+# ─── update artifacts ───────────────────────────────────────────────────────
+#
+# SkilledInjector.exe and Skilled.dll live in the SKILLED namespace above, under
+# `artifact:<sha256>` — keyed by content, so uploading the same build twice is a
+# no-op and ROLLBACK IS A METADATA CHANGE: the previous release's bytes are
+# still there, and reverting is writing the old envelope back to update:stable.
+# Nothing is ever deleted, because deleting would trade the one property that
+# makes a bad release survivable for a few megabytes.
+#
+# This is the compromise position, not the destination. R2 is the right store
+# for binaries — 10 GB free against KV's 1 GB, no value-size ceiling worth
+# thinking about, and egress that does not count — but activating R2 requires a
+# subscription with a card on file, and KV requires nothing. A 2.4 MB DLL fits
+# inside KV's 25 MB value limit, so this works today and costs nothing.
+#
+# What to watch: 1 GB total, nothing deleted, ~5 MB a release. That is a couple
+# of hundred releases, not a couple of thousand. It shares the namespace and the
+# storage budget with sessions, tokens and entitlements — which are tiny, but it
+# is the same namespace whose WRITE quota took the Worker down once, so keep
+# artifact writes to the two per release they are meant to be.
+#
+# Moving to R2 later: re-add an [[r2_buckets]] binding here, change one get() in
+# src/updates.js, and change one line in tools/release.ps1. The manifest, the
+# signature and the contract do not know where the bytes came from.
+
 [vars]
 # The origin link.html is served from. verify_url is built off this.
 # Must be the real deployed domain, no trailing slash.
@@ -35,14 +60,25 @@ DEV_EMAILS = "papawhomaomao@gmail.com"
 
 # ─── payments ───────────────────────────────────────────────────────────────
 #
-# The gate. While this is anything but "true", every signed-in account passes
-# hasEntitlement() regardless of what is in KV — the launch position from
-# LAUNCHER-AUTH-v1.md, kept so that deploying the payment layer does not lock
-# out existing accounts on the way in.
+# The gate, and it is CLOSED. An account with no granting ent: record in KV is
+# refused at every entry point — approve, poll, launcher refresh, heartbeat and
+# the config cloud — so having signed up is no longer the same as having paid.
 #
-# Flip to "true" only once real ent: records are landing from real purchases
-# and anyone who bought earlier has been backfilled. One redeploy to roll back.
-ENTITLEMENT_ENFORCED = "false"
+# Set to anything other than "true" and every signed-in account passes
+# hasEntitlement() regardless of what is in KV. That was the launch position
+# from LAUNCHER-AUTH-v1.md, kept while the payment layer was deployed so it
+# could not lock out existing accounts on the way in. It is also the rollback:
+# one word here plus a redeploy reopens the gate, with no code change and
+# nothing to revert.
+#
+# Anyone who paid outside Stripe — staff, testers, a manual sale — needs a
+# record written by hand, or they are indistinguishable from a stranger:
+#
+#   wrangler kv key put "ent:<clerk_user_id>" --remote --namespace-id <id> \
+#     '{"status":"active","plan":"lifetime","until":null,"renews":false}'
+#
+# `until` is epoch ms, or null to never expire. See src/entitlement.js.
+ENTITLEMENT_ENFORCED = "true"
 
 # Which adapter /api/checkout uses when the request does not name one.
 PAYMENT_PROVIDER = "stripe"

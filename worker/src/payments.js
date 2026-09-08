@@ -22,7 +22,7 @@
    stranger's account and taken someone's money for nothing. */
 
 import { json, readJson, clientIp, rateLimited } from "./http.js";
-import { requireUser, userProfile, primaryEmailOf } from "./clerk.js";
+import { requireUser, userProfile, primaryEmailOf, verifiedEmailsOf } from "./clerk.js";
 import {
   readEntitlement,
   claimPending,
@@ -142,11 +142,19 @@ export async function mine(request, env) {
 
   /* Bought from a provider-hosted storefront before the account existed. The
      webhook parked it against the email; collect it here, matched against the
-     address Clerk has verified rather than the one the webhook supplied. */
+     addresses Clerk has VERIFIED rather than the one the webhook supplied.
+
+     Verified, plural, and neither word is incidental. This used to pass the
+     primary address, which is not the same claim: primaryEmailOf() reports
+     whichever row Clerk flagged primary and never asks whether anyone
+     confirmed it, so a shelved purchase could be collected by an account that
+     had only ever typed the buyer's address in. And a person who checks out
+     under a second address they own is entitled to what they bought — so every
+     confirmed address gets a look, not just the one on the profile header. */
   if (ent.status === "none") {
     const profile = await userProfile(env, user.userId);
-    const email = primaryEmailOf(profile) || user.email || null;
-    if (await claimPending(env, user.userId, email)) ent = await readEntitlement(env, user.userId);
+    if (await claimPending(env, user.userId, verifiedEmailsOf(profile)))
+      ent = await readEntitlement(env, user.userId);
   }
 
   return json({ ok: true, entitlement: ent }, { request, env });

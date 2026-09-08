@@ -3,6 +3,7 @@ import { launcherSession, userProfile, displayNameOf, primaryEmailOf } from "./c
 import { hasEntitlement } from "./entitlement.js";
 import { hash } from "./tokens.js";
 import { mintTokens, saveSession, revokeSession } from "./sessions.js";
+import { currentVersion } from "./updates.js";
 
 /* 5. POST /auth/launcher/refresh — no bearer; the refresh token is the
    credential. Rotates on every use. A refresh token presented twice is either
@@ -102,5 +103,20 @@ export async function heartbeat(request, env) {
     await saveSession(env, session);
   }
 
-  return json({ ok: true });
+  // The update notification channel. The launcher already talks to this
+  // endpoint every 15 seconds carrying its version; adding a second poller to
+  // ask "is there a new build" would be a whole extra request path for a
+  // question this one is already most of the way to answering.
+  //
+  // The field carries a version and nothing else -- no hash, no URL, no
+  // instruction. This response is not signed, so it must not be able to steer a
+  // download. All it can do is prompt the launcher to go and ask the signed
+  // manifest endpoint, which is where the trust actually lives.
+  //
+  // `channel` is taken from the body without verifying the caller is on it. It
+  // only decides which version string comes back; the beta flag is enforced at
+  // the manifest endpoint, which is the one that hands out anything.
+  const update = await currentVersion(env, String(body.channel || "stable"));
+
+  return json(update ? { ok: true, update } : { ok: true });
 }

@@ -4,6 +4,7 @@ import * as launcher from "./launcher.js";
 import * as app from "./app.js";
 import * as configs from "./configs.js";
 import * as payments from "./payments.js";
+import * as updates from "./updates.js";
 import { AuthError } from "./clerk.js";
 
 export default {
@@ -21,6 +22,12 @@ export default {
       if (p === "/auth/launcher/refresh" && m === "POST") return await launcher.refresh(request, env);
       if (p === "/api/launcher/heartbeat" && m === "POST") return await launcher.heartbeat(request, env);
 
+      // Updates — .exe facing. The exe ships with no payload, so these are the
+      // only route by which a Skilled.dll exists on a customer's machine.
+      if (p === "/api/update/manifest" && m === "GET") return await updates.manifest(request, env, url);
+      if (p.startsWith("/api/update/artifact/") && m === "GET")
+        return await updates.artifact(request, env, p.split("/").pop());
+
       // Device flow — link.html facing (CORS)
       if (p === "/auth/device/pending" && m === "GET") return await device.pending(request, env, url);
       if (p === "/auth/device/approve" && m === "POST") return await device.decide(request, env, true);
@@ -32,6 +39,19 @@ export default {
       if (p.startsWith("/admin/broadcast/") && m === "DELETE")
         return await app.deleteBroadcast(request, env, p.split("/").pop());
       if (p === "/admin/users" && m === "GET") return await app.adminUsers(request, env);
+
+      // Entitlement by hand — dev only. The gate is closed, so this is the
+      // only way a licence exists that Stripe did not create: staff, the
+      // pre-enforcement backfill, a lost webhook, a support grant. Read the
+      // block above these handlers in app.js before the first deploy — being a
+      // dev does not entitle anyone, so closing the gate locks the owner out
+      // too, and POST /admin/entitlement with an empty body is the way back in.
+      if (p === "/admin/entitlement" && m === "GET")
+        return await app.adminEntitlementGet(request, env, url);
+      if (p === "/admin/entitlement" && m === "POST")
+        return await app.adminEntitlementGrant(request, env);
+      if (p === "/admin/entitlement" && m === "DELETE")
+        return await app.adminEntitlementRevoke(request, env, url);
       if (p === "/api/sessions" && m === "GET") return await app.mySessions(request, env);
       if (p.startsWith("/api/sessions/") && m === "DELETE")
         return await app.revoke(request, env, p.split("/").pop());

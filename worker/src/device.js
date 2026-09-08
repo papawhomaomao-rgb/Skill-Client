@@ -88,7 +88,9 @@ export async function decide(request, env, approve) {
     return json({ ok: true }, { request, env });
   }
 
-  // Entitlement gate. Predicate is open today; the refusal path is live.
+  // Entitlement gate, and the first one a stranger meets: approving the link
+  // in the browser is where an account with no licence is turned away, before
+  // any session or token exists. Signing in is not what buys access.
   if (!(await hasEntitlement(env, user.userId))) {
     rec.status = "no_license";
     await save(env, rec);

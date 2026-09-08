@@ -43,9 +43,14 @@ const devEmails = env =>
     .filter(Boolean);
 
 /* Lowercased addresses Clerk has verified for this account. Unverified rows
-   are dropped rather than returned for the caller to filter — the one caller
-   that matters must not be able to forget. */
-function verifiedEmailsOf(profile) {
+   are dropped rather than returned for the caller to filter — no caller that
+   matters must be able to forget.
+
+   Exported because there are two of those callers now. The dev allowlist below
+   was the first. The second is the pending-purchase claim in payments.js,
+   which used the primary address instead and so would hand a stranger's
+   licence to anyone who had merely typed their email into a Clerk account. */
+export function verifiedEmailsOf(profile) {
   if (!profile || !Array.isArray(profile.email_addresses)) return [];
   return profile.email_addresses
     .filter(e => e?.verification?.status === "verified" && e.email_address)
@@ -216,6 +221,43 @@ export async function findUserByUsername(env, username) {
     return hit ? { userId: hit.id, username: hit.username } : null;
   } catch (err) {
     console.error("Clerk findUserByUsername error:", err);
+    return null;
+  }
+}
+
+/* Exact verified email -> user id. Used ONLY by the dev-only entitlement
+   routes, where "this person paid, grant them" starts with an address off a
+   Stripe receipt and has to end at a Clerk user id.
+
+   Note the deliberate asymmetry with findUserByUsername above, which refuses
+   to match on email precisely so it cannot be used to test whether an address
+   holds an account. The difference is the caller: that one is reachable by any
+   signed-in user, this one only behind requireDev. An oracle that answers only
+   staff is not an oracle.
+
+   The match is re-checked against the VERIFIED addresses on the returned
+   record rather than trusted from the query, for the same reason the dev
+   allowlist is: granting on an unconfirmed address means anyone who types a
+   customer's email into a signup form is that customer as far as this is
+   concerned. */
+export async function findUserByEmail(env, email) {
+  const want = String(email || "").trim().toLowerCase();
+  if (!want) return null;
+  try {
+    const res = await fetch(
+      `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(want)}&limit=5`,
+      { headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}` } },
+    );
+    if (!res.ok) {
+      console.error("Clerk findUserByEmail failed:", res.status, await res.text());
+      return null;
+    }
+    const list = await res.json();
+    if (!Array.isArray(list)) return null;
+    const hit = list.find(u => verifiedEmailsOf(u).includes(want));
+    return hit ? { userId: hit.id, email: want } : null;
+  } catch (err) {
+    console.error("Clerk findUserByEmail error:", err);
     return null;
   }
 }
