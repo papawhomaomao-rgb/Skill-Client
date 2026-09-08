@@ -20,3 +20,9 @@ node_modules/
 .wrangler/
 **/.wrangler/
 
+
+# Local-only dev harness for the developer dashboard. Renders the grant and
+# revoke surface against fixtures, with no Clerk session and no Worker behind
+# it. Ignored so it never reaches the deployed site, where it would look like
+# a real admin page.
+devharness.html

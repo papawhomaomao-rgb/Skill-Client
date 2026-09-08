@@ -451,33 +451,112 @@ function useAnnouncements() {
 
 /* ─────────── User directory — Worker proxies Clerk's Backend API ─────────── */
 
+/* The roster, and the two writes the dev dashboard drives from it.
+
+   GET /admin/users carries the licence per row since the gate closed, so the
+   table can say who can actually get in. Grant and revoke are the same records
+   from the other direction — they live here rather than in the component
+   because both have to put the answer back into the row that was clicked.
+
+   That is what `merge` is for. Both endpoints return the entitlement they just
+   wrote, so the row updates from the response instead of waiting up to ten
+   seconds for the next poll to agree. The poll still runs behind it and is
+   still the authority; this only removes the lag between clicking and seeing. */
 function useUserDirectory() {
   const [users, setUsers] = useState({});
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const r = await authenticatedFetch("/admin/users");
-        if (!r.ok) return;
-        const d = await r.json();
-        if (!alive || !d || !d.ok) return;
-        if (Array.isArray(d.users)) {
-          const map = {};
-          for (const u of d.users) {
-            const em = (u.email || "").toLowerCase();
-            if (em) map[em] = u;
-          }
-          setUsers(map);
-        } else if (d.users && typeof d.users === "object") {
-          setUsers(d.users);
+  const [enforced, setEnforced] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(null);      // user id mid-write, for the spinner
+  const [error, setError] = useState(null);
+  const alive = useRef(true);
+
+  useEffect(() => () => { alive.current = false; }, []);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await authenticatedFetch("/admin/users");
+      if (!r.ok) return;
+      const d = await r.json();
+      if (!alive.current || !d || !d.ok) return;
+      if (Array.isArray(d.users)) {
+        const map = {};
+        for (const u of d.users) {
+          const em = (u.email || "").toLowerCase();
+          if (em) map[em] = u;
         }
-      } catch (e) { /* endpoint not deployed */ }
-    };
+        setUsers(map);
+      } else if (d.users && typeof d.users === "object") {
+        setUsers(d.users);
+      }
+      /* Absent means an older Worker that predates the field. Reading that as
+         "enforced" is the safe way round: the roster captions itself as live
+         rather than telling you licences do not matter when they do. */
+      setEnforced(d.enforced !== false);
+    } catch (e) { /* endpoint not deployed */ }
+    finally { if (alive.current) setLoading(false); }
+  }, []);
+
+  useEffect(() => {
     load();
     const id = setInterval(load, 10000);
-    return () => { alive = false; clearInterval(id); };
-  }, []);
-  return users;
+    return () => clearInterval(id);
+  }, [load]);
+
+  const merge = (userId, entitlement) => setUsers(prev => {
+    const next = {};
+    for (const [em, u] of Object.entries(prev)) {
+      next[em] = u.id === userId
+        ? { ...u, licensed: !!entitlement.active, entitlement }
+        : u;
+    }
+    return next;
+  });
+
+  const write = useCallback(async (userId, path, options) => {
+    setBusy(userId);
+    setError(null);
+    try {
+      const r = await authenticatedFetch(path, options);
+      const d = await r.json().catch(() => null);
+      if (!r.ok || !d || !d.ok) {
+        setError((d && d.error) || `http_${r.status}`);
+        return false;
+      }
+      if (d.entitlement && alive.current) merge(userId, d.entitlement);
+      load();
+      return true;
+    } catch (e) {
+      setError("network");
+      return false;
+    } finally {
+      if (alive.current) setBusy(null);
+    }
+  }, [load]);
+
+  /* opts is POST /admin/entitlement's body minus the target: { plan, days,
+     until, staff, note }. Sending only what was chosen matters — the Worker
+     reads `"until" in body`, so a stray undefined is the difference between a
+     30-day licence and a permanent one. */
+  const grant = useCallback((userId, opts = {}) =>
+    write(userId, "/admin/entitlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, ...opts }),
+    }), [write]);
+
+  /* Revoking also kills the account's launcher sessions, so the DLL is ejected
+     within a heartbeat rather than at the end of the current token's hour. */
+  const revoke = useCallback((userId, note) => {
+    const q = new URLSearchParams({ user_id: userId });
+    if (note) q.set("note", note);
+    return write(userId, `/admin/entitlement?${q}`, { method: "DELETE" });
+  }, [write]);
+
+  return {
+    users, enforced, loading, busy, error,
+    reload: load, grant, revoke,
+    clearError: () => setError(null),
+  };
 }
 
 /* ─────────── Devices — real launcher sessions from Worker ─────────── */

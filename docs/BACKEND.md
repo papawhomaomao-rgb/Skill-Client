@@ -90,9 +90,36 @@ these exist, so the dashboard stays usable in the meantime.
 | `POST` | `/admin/broadcast` | **dev** | `{ ok, id, at, from }` — body `{ body: "text" }` |
 | `DELETE` | `/admin/broadcast/:id` | **dev** | `{ ok }` |
 | `GET` | `/admin/users` | **dev** | `{ ok, users: [{ email, role, createdAt, lastSeen }] }` |
+| `GET` | `/api/entitlement` | user | `{ ok, entitlement }` — the Licence panel, and where a pre-signup purchase is claimed |
+| `GET` | `/admin/entitlement?user_id=…\|email=…` | **dev** | `{ ok, user_id, entitlement, log }` |
+| `POST` | `/admin/entitlement` | **dev** | grant — body `{ user_id \| email, plan?, days?, until?, staff?, note? }` |
+| `DELETE` | `/admin/entitlement?user_id=…\|email=…` | **dev** | revoke, and drop that account's launcher sessions |
 
 `/admin/users` proxies Clerk's Backend API (`GET https://api.clerk.com/v1/users`)
 with `CLERK_SECRET_KEY`, merged with whatever the Worker knows per user.
+
+### The entitlement routes
+
+`ENTITLEMENT_ENFORCED` is `"true"`, so an account with no granting `ent:` record
+cannot sign a launcher in — see the contract for where that check runs. The
+three `/admin/entitlement` routes are how a licence exists that Stripe did not
+create: staff and testers, the backfill for anyone who bought before the gate
+closed, a purchase whose webhook was lost, a support grant.
+
+Two things about them are easy to get wrong and expensive to discover:
+
+- **Being a `dev` does not entitle anyone.** The predicate takes a user id and
+  no role, deliberately. Closing the gate locks out staff along with everyone
+  else, and `POST /admin/entitlement` with an empty body — which grants the
+  caller — is the way back in. Run it right after the deploy that closes it.
+- **An `email` target only matches a Clerk account that has verified it.** Same
+  rule as `DEV_EMAILS`, for the same reason: granting on an unconfirmed address
+  means anyone who types a customer's email at a signup form is that customer.
+
+They go through the same write path as a webhook, so a grant lands in the
+`entlog:` audit trail with the address of whoever made it, and a revoke takes
+that account's launcher sessions down with it. Editing the KV key by hand does
+neither, which is why these exist.
 
 ### Sessions, not devices
 

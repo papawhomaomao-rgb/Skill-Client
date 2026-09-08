@@ -1,5 +1,5 @@
 // dashboard.jsx — user + developer dashboards
-const { useState, useMemo, useEffect, useRef } = React;
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
 
 /* ─── shared chrome ─── */
 
@@ -366,13 +366,26 @@ function UserLicense({ onBuy, justPurchased }) {
    working client. */
 
 const DOWNLOAD = {
-  url: null,          // "/downloads/Skilled-1.0.0.exe" — null until a build is published
+  url: "/downloads/Skilled-1.0.0.exe",
   name: "Skilled.exe",
-  version: null,      // "1.0.0"
-  size: null,         // "48 MB". Written down rather than measured: a HEAD request
-                      // per render buys nothing a human cannot read off a label.
-  updated: null,      // epoch ms
+  version: "1.0.0",
+  size: "2.4 MB",     // Written down rather than measured: a HEAD request per
+                      // render buys nothing a human cannot read off a label.
+  updated: 1788832433020,
 };
+
+/* Keeping this block honest is a release step, not a deploy detail. The file is
+   served straight off the CDN, so a stale `url` here points at a build that is
+   no longer the one the updater will immediately replace — the client still
+   self-corrects on first run, but the user downloads twice for no reason.
+
+   The exe carries Skilled.dll embedded, which is what makes a fresh download
+   work before it has ever reached the update endpoint. It also means this URL
+   hands out a complete DLL to anyone holding it, signed in or not. That is a
+   known and accepted trade — see docs/UPDATE-v1.md in the client repo, under
+   "The decision taken" — and the reason it is survivable is that the bytes were
+   never the secret: without a launcher holding a live session, an injected
+   Skilled.dll gets no handoff and unloads itself. */
 
 const FIRST_RUN = [
   "Run the file. Windows may warn about an unknown publisher. That is SmartScreen not recognising a new signature, not a detection.",
@@ -605,52 +618,553 @@ function UserSecurity({ auth }) {
 
 function DevDashboard({ auth, leave }) {
   const ann = useAnnouncements();
-  const users = useUserDirectory();
+  const dir = useUserDirectory();
   const [tab, setTab] = useState("buyers");
 
   const userList = useMemo(() => {
-    return Object.entries(users)
+    return Object.entries(dir.users)
       .map(([email, u]) => ({ email, ...u }))
       .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  }, [users]);
+  }, [dir.users]);
   const buyerCount = userList.filter(u => u.role !== "dev").length;
+  const licensed = userList.filter(u => u.licensed).length;
 
   const tabs = [
-    { id: "buyers",   label: "Buyers",        icon: "users", badge: buyerCount || null },
+    { id: "buyers",   label: "Buyers",        icon: "users",   badge: buyerCount || null },
+    { id: "licences", label: "Licences",      icon: "license", badge: licensed || null },
     { id: "compose",  label: "Compose",       icon: "compose" },
-    { id: "history",  label: "Announcements", icon: "inbox", badge: ann.list.length || null },
+    { id: "history",  label: "Announcements", icon: "inbox",   badge: ann.list.length || null },
   ];
 
   return (
     <DashShell auth={auth} onLeave={leave} tab={tab} setTab={setTab} tabs={tabs}>
-      {tab === "buyers"  && <DevBuyers users={userList} />}
-      {tab === "compose" && <DevCompose ann={ann} from={`Skill · ${auth.email.split("@")[0]}`} buyerCount={buyerCount} />}
-      {tab === "history" && <DevHistory ann={ann} />}
+      {tab === "buyers"   && <DevBuyers users={userList} dir={dir} me={auth.email} />}
+      {tab === "licences" && <DevLicences users={userList} dir={dir} me={auth.email} />}
+      {tab === "compose"  && <DevCompose ann={ann} from={`Skill · ${auth.email.split("@")[0]}`} buyerCount={buyerCount} />}
+      {tab === "history"  && <DevHistory ann={ann} />}
     </DashShell>
+  );
+}
+
+/* ─── licences: the grant surface ───────────────────────────────────────────
+
+   Two ways in, because they answer different questions. The Buyers roster is
+   for "this person, right now" — right-click the row and grant. This tab is
+   for "who currently holds what", and it is where a grant starts when you have
+   a name off a support thread rather than a row already under the cursor.
+
+   Both drive the same two endpoints through the same hook, so neither can
+   drift into being the one that works. */
+
+const PLAN_PRESETS = [
+  { id: "lifetime", label: "Lifetime", detail: "Never expires",  body: { plan: "lifetime" } },
+  { id: "monthly",  label: "Monthly",  detail: "30 days",        body: { plan: "monthly", days: 30 } },
+];
+
+/* What a row's licence actually is, in the four words a table cell has room
+   for. `licensed` is the Worker's own predicate — an expired `until` and a
+   past_due inside its grace both land somewhere `status` alone does not. */
+function licenceOf(u) {
+  const e = u.entitlement || {};
+  if (u.licensed) {
+    const plan = e.plan === "staff" ? "Staff" : (e.plan ? e.plan[0].toUpperCase() + e.plan.slice(1) : "Active");
+    return {
+      on: true,
+      label: e.status === "past_due" ? `${plan} · past due` : plan,
+      detail: e.until ? `until ${fmtDate(e.until)}` : "never expires",
+      tone: e.status === "past_due" ? "warn" : "ok",
+    };
+  }
+  if (e.status === "revoked")  return { on: false, label: "Revoked",  detail: "access removed", tone: "off" };
+  if (e.status === "refunded") return { on: false, label: "Refunded", detail: "money returned", tone: "off" };
+  if (e.until && e.until < Date.now())
+    return { on: false, label: "Expired", detail: `ended ${fmtDate(e.until)}`, tone: "off" };
+  return { on: false, label: "None", detail: "cannot sign in", tone: "none" };
+}
+
+function LicenceChip({ u }) {
+  const l = licenceOf(u);
+  const colour = {
+    ok:   { fg: "var(--acc)",             bg: "var(--acc-soft)",            line: "var(--acc-line)" },
+    warn: { fg: "oklch(0.80 0.15 75)",    bg: "oklch(0.80 0.15 75 / 0.10)", line: "oklch(0.80 0.15 75 / 0.28)" },
+    off:  { fg: "oklch(0.72 0.19 25)",    bg: "oklch(0.72 0.19 25 / 0.10)", line: "oklch(0.72 0.19 25 / 0.26)" },
+    none: { fg: "var(--fg-3)",            bg: "oklch(1 0 0 / 0.03)",        line: "var(--line)" },
+  }[l.tone];
+
+  return (
+    <span title={l.detail} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      height: 22, padding: "0 9px", borderRadius: 5,
+      background: colour.bg, border: `1px solid ${colour.line}`, color: colour.fg,
+      fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: "0.04em", whiteSpace: "nowrap",
+    }}>
+      <span style={{
+        width: 5, height: 5, borderRadius: "50%", background: "currentColor",
+        opacity: l.on ? 1 : 0.55,
+      }} />
+      {l.label}
+    </span>
+  );
+}
+
+/* A short-lived confirmation line. Every write here is one click away from
+   changing whether a real person can start the game, so each one says what it
+   did rather than leaving the table to be re-read. */
+function useToast() {
+  const [msg, setMsg] = useState(null);
+  const timer = useRef(null);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const show = useCallback((text, ok = true) => {
+    clearTimeout(timer.current);
+    setMsg({ text, ok, id: Date.now() });
+    timer.current = setTimeout(() => setMsg(null), 4000);
+  }, []);
+  const node = msg ? (
+    <div className="toast" key={msg.id}>
+      <DashIcon name={msg.ok ? "bolt" : "shield"} size={14} />
+      {msg.text}
+    </div>
+  ) : null;
+  return { show, node };
+}
+
+/* ─── right-click menu ───────────────────────────────────────────────────────
+
+   Anchored to the pointer rather than to the row, because that is where the
+   hand already is. It closes on Escape, on a click anywhere outside it, and on
+   any scroll — a menu pinned to a viewport coordinate while the table moves
+   underneath points at the wrong person, which on a revoke matters.
+
+   Revoke is the one item that does not fire on the first click. It swaps the
+   menu for a confirm strip naming the account, so the destructive path costs
+   one more click than the reversible ones and reads back who it is about. */
+function RowMenu({ at, user, dir, onClose, onCustom, onToast }) {
+  const ref = useRef(null);
+  const [confirm, setConfirm] = useState(false);
+  const [pos, setPos] = useState(at);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const pad = 10;
+    setPos({
+      x: Math.max(pad, Math.min(at.x, window.innerWidth - r.width - pad)),
+      y: Math.max(pad, Math.min(at.y, window.innerHeight - r.height - pad)),
+    });
+  }, [at.x, at.y, confirm]);
+
+  useEffect(() => {
+    const away = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    const key = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", key);
+    window.addEventListener("resize", onClose);
+    window.addEventListener("scroll", onClose, true);
+    return () => {
+      document.removeEventListener("mousedown", away);
+      document.removeEventListener("keydown", key);
+      window.removeEventListener("resize", onClose);
+      window.removeEventListener("scroll", onClose, true);
+    };
+  }, [onClose]);
+
+  const who = user.email || user.id;
+  const l = licenceOf(user);
+
+  const run = async (fn, done) => {
+    onClose();
+    const ok = await fn();
+    onToast(ok ? done : "That did not go through. The error above the table says why.", ok);
+  };
+
+  const copy = (text, what) => {
+    try {
+      navigator.clipboard.writeText(text);
+      onToast(`${what} copied.`);
+    } catch (e) { onToast("Clipboard blocked by the browser.", false); }
+    onClose();
+  };
+
+  return (
+    <div ref={ref} className="row-menu" style={{ left: pos.x, top: pos.y }} onContextMenu={(e) => e.preventDefault()}>
+      <div className="row-menu-head">
+        <span className="dash-avatar small">{who.slice(0, 2).toUpperCase()}</span>
+        <div style={{ minWidth: 0 }}>
+          <div className="row-menu-who">{who}</div>
+          <div className="row-menu-sub">{l.label} · {l.detail}</div>
+        </div>
+      </div>
+
+      {confirm ? (
+        <div className="row-menu-confirm">
+          <p>
+            Remove access for <b>{who}</b>? Their licence is revoked and every
+            launcher session signs out, so the client ejects within 15 seconds.
+            You can grant it back at any time.
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="rm-btn rm-danger" onClick={() => run(() => dir.revoke(user.id, `removed from dashboard`), `Access removed for ${who}.`)}>
+              Remove access
+            </button>
+            <button className="rm-btn" onClick={() => setConfirm(false)}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <div className="row-menu-items">
+          {PLAN_PRESETS.map(p => (
+            <button key={p.id} onClick={() => run(() => dir.grant(user.id, p.body), `${p.label} licence granted to ${who}.`)}>
+              <DashIcon name="license" size={13} />
+              <span>Grant {p.label}</span>
+              <em>{p.detail}</em>
+            </button>
+          ))}
+          <button onClick={() => { onClose(); onCustom(user); }}>
+            <DashIcon name="cog" size={13} />
+            <span>Custom grant…</span>
+            <em>plan, days, note</em>
+          </button>
+
+          <div className="row-menu-rule" />
+
+          <button
+            className={l.on || (user.entitlement && user.entitlement.status !== "none") ? "rm-danger-item" : "rm-disabled"}
+            disabled={!l.on && !(user.entitlement && user.entitlement.status !== "none")}
+            onClick={() => setConfirm(true)}
+          >
+            <DashIcon name="signout" size={13} />
+            <span>Remove access</span>
+            <em>{l.on ? "revoke + sign out" : "no licence"}</em>
+          </button>
+
+          <div className="row-menu-rule" />
+
+          <button onClick={() => copy(user.email || "", "Email")}>
+            <DashIcon name="compose" size={13} /><span>Copy email</span>
+          </button>
+          <button onClick={() => copy(user.id || "", "User ID")}>
+            <DashIcon name="compose" size={13} /><span>Copy user ID</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── the grant panel ────────────────────────────────────────────────────────
+
+   The long way round, for when the quick presets are not what you want: pick
+   anyone in the roster, pick a plan, set how long, and leave a note that ends
+   up in the account's audit log next to who granted it.
+
+   Expiry is a plain choice between "never" and a day count rather than a date
+   picker, because the Worker takes `days` and counts from now — a date field
+   would only be a day count with an extra timezone bug in it. */
+function GrantDialog({ user, users, dir, onClose, onToast }) {
+  const [targetId, setTargetId] = useState(user ? user.id : "");
+  const [plan, setPlan] = useState("lifetime");
+  const [forever, setForever] = useState(true);
+  const [days, setDays] = useState(30);
+  const [note, setNote] = useState("");
+  const [q, setQ] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const key = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, [onClose]);
+
+  /* Picking the plan moves the expiry to what that plan normally means, and
+     leaves it editable. Choosing "Monthly" and silently writing a permanent
+     licence is the mistake this exists to stop. */
+  const choosePlan = (id) => {
+    setPlan(id);
+    if (id === "monthly") { setForever(false); setDays(30); }
+    else setForever(true);
+  };
+
+  const target = users.find(u => u.id === targetId) || null;
+  const matches = q.trim() === "" ? users.slice(0, 6)
+    : users.filter(u => (u.email || "").toLowerCase().includes(q.trim().toLowerCase())).slice(0, 6);
+
+  const submit = async () => {
+    if (!target || saving) return;
+    setSaving(true);
+    const body = plan === "staff" ? { staff: true } : { plan };
+    /* Only ever send `days` when it is meant. The Worker treats an absent
+       expiry as a lifetime grant, and an explicit undefined is not the same
+       thing as leaving the key off. */
+    if (plan !== "staff" && !forever) body.days = Number(days);
+    if (note.trim()) body.note = note.trim();
+
+    const ok = await dir.grant(target.id, body);
+    setSaving(false);
+    if (ok) {
+      const span = plan === "staff" || forever ? "never expires" : `${days} days`;
+      onToast(`${plan === "staff" ? "Staff" : plan[0].toUpperCase() + plan.slice(1)} licence granted to ${target.email}, ${span}.`);
+      onClose();
+    } else {
+      onToast("Grant failed. The error above the table says why.", false);
+    }
+  };
+
+  return (
+    <div className="dlg-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="dlg" role="dialog" aria-modal="true">
+        <div className="dlg-head">
+          <div>
+            <h3>Grant a licence</h3>
+            <p>Writes the entitlement record directly. No payment, no Stripe. The account can sign a launcher in the moment it lands.</p>
+          </div>
+          <button className="dlg-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        <div className="dlg-body">
+          <div className="dlg-field">
+            <label className="dash-label">Account</label>
+            {target ? (
+              <div className="dlg-target">
+                <span className="dash-avatar small">{(target.email || "?").slice(0, 2).toUpperCase()}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="mono" style={{ fontSize: 12.5, color: "var(--fg)", overflow: "hidden", textOverflow: "ellipsis" }}>{target.email}</div>
+                  <div className="mono" style={{ fontSize: 10.5, color: "var(--fg-3)" }}>{licenceOf(target).label} · {licenceOf(target).detail}</div>
+                </div>
+                <button className="rm-btn" onClick={() => { setTargetId(""); setQ(""); }}>Change</button>
+              </div>
+            ) : (
+              <>
+                <input
+                  className="dlg-input mono" autoFocus
+                  value={q} onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search accounts by email…"
+                />
+                <div className="dlg-picker">
+                  {matches.length === 0 && <div className="dlg-picker-empty">No account matches “{q}”.</div>}
+                  {matches.map(u => (
+                    <button key={u.id} onClick={() => setTargetId(u.id)}>
+                      <span className="dash-avatar small">{(u.email || "?").slice(0, 2).toUpperCase()}</span>
+                      <span className="mono" style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
+                      <LicenceChip u={u} />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="dlg-field">
+            <label className="dash-label">Plan</label>
+            <div className="dlg-plans">
+              {[
+                { id: "lifetime", label: "Lifetime", sub: "Every module, forever" },
+                { id: "monthly",  label: "Monthly",  sub: "Every module, 30 days" },
+                { id: "staff",    label: "Staff",    sub: "Internal, never expires" },
+              ].map(p => (
+                <button key={p.id} className={plan === p.id ? "dlg-plan on" : "dlg-plan"} onClick={() => choosePlan(p.id)}>
+                  <b>{p.label}</b>
+                  <em>{p.sub}</em>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {plan !== "staff" && (
+            <div className="dlg-field">
+              <label className="dash-label">Expires</label>
+              <div className="dlg-expiry">
+                <button className={forever ? "rm-btn on" : "rm-btn"} onClick={() => setForever(true)}>Never</button>
+                <button className={!forever ? "rm-btn on" : "rm-btn"} onClick={() => setForever(false)}>After</button>
+                <input
+                  className="dlg-input mono" type="number" min="1" max="3650"
+                  value={days} disabled={forever}
+                  onChange={(e) => setDays(e.target.value)}
+                  style={{ width: 84, opacity: forever ? 0.4 : 1 }}
+                />
+                <span className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)" }}>
+                  {forever ? "no expiry is written" : `ends ${fmtDate(Date.now() + Number(days || 0) * 86400000)}`}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="dlg-field">
+            <label className="dash-label">Note <span style={{ textTransform: "none", letterSpacing: 0, color: "var(--fg-3)" }}>(optional, kept in the audit log)</span></label>
+            <input
+              className="dlg-input" value={note} onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. beta tester, or lost webhook order #1234"
+              maxLength={500}
+            />
+          </div>
+        </div>
+
+        <div className="dlg-foot">
+          <button className="rm-btn" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            onClick={submit}
+            disabled={!target || saving}
+            style={{ opacity: target && !saving ? 1 : 0.4, pointerEvents: target && !saving ? "auto" : "none" }}
+          >
+            <DashIcon name="license" size={13} />
+            {saving ? "Granting…" : "Grant licence"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── licences tab ─── */
+
+function DevLicences({ users, dir, me }) {
+  const toast = useToast();
+  const [dialog, setDialog] = useState(null);   // null | { user }
+  const [menu, setMenu] = useState(null);
+
+  const holders = users.filter(u => u.licensed);
+  const none    = users.filter(u => !u.licensed);
+  const staff   = users.filter(u => u.entitlement && u.entitlement.plan === "staff");
+  const soon    = users.filter(u => {
+    const t = u.entitlement && u.entitlement.until;
+    return u.licensed && t && t - Date.now() < 7 * 86400000;
+  });
+
+  return (
+    <>
+      <DashHead
+        title="Licences"
+        sub="Who can actually sign a launcher in, and the panel that decides it. A grant here takes effect on their next heartbeat."
+      />
+
+      {!dir.enforced && (
+        <div className="dash-warn">
+          <b>The gate is open.</b> ENTITLEMENT_ENFORCED is not "true", so every
+          signed-in account can use the client regardless of what is below.
+          Grants still write real records. They just are not what is letting
+          anyone in right now.
+        </div>
+      )}
+
+      <div className="dash-stats">
+        <Stat label="Licensed" value={holders.length} accent subtle={`of ${users.length} accounts`} />
+        <Stat label="No licence" value={none.length} subtle="cannot sign in" />
+        <Stat label="Expiring in 7d" value={soon.length} subtle={soon.length === 1 ? "account" : "accounts"} />
+        <Stat label="Staff" value={staff.length} subtle="never expire" />
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24, marginBottom: 16 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600 }}>Current licence holders</h3>
+        <button className="btn btn-primary" style={{ marginLeft: "auto" }} onClick={() => setDialog({ user: null })}>
+          <DashIcon name="license" size={13} />
+          Grant a licence
+        </button>
+      </div>
+
+      {dir.error && (
+        <div className="dash-error">
+          <span>Last write failed: <span className="mono">{dir.error}</span></span>
+          <button className="rm-btn" onClick={dir.clearError}>Dismiss</button>
+        </div>
+      )}
+
+      <div className="dash-card" style={{ padding: 0 }}>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th style={{ width: 32 }}></th>
+              <th>Email</th>
+              <th>Licence</th>
+              <th>Expires</th>
+              <th>Source</th>
+              <th style={{ textAlign: "right" }}>Devices</th>
+            </tr>
+          </thead>
+          <tbody>
+            {holders.length === 0 && (
+              <tr><td colSpan="6" style={{ textAlign: "center", padding: 40, color: "var(--fg-3)" }}>
+                Nobody holds a licence yet. Grant one, or wait for a Stripe purchase to land.
+              </td></tr>
+            )}
+            {holders.map(u => (
+              <tr
+                key={u.id}
+                onContextMenu={(e) => { e.preventDefault(); setMenu({ at: { x: e.clientX, y: e.clientY }, user: u }); }}
+                style={{ cursor: "context-menu", opacity: dir.busy === u.id ? 0.5 : 1 }}
+              >
+                <td><span className="dash-avatar small">{(u.email || "?").slice(0, 2).toUpperCase()}</span></td>
+                <td className="mono" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--fg)" }}>
+                  {u.email}{u.email === me && <span style={{ color: "var(--fg-3)", fontWeight: 400 }}> · you</span>}
+                </td>
+                <td><LicenceChip u={u} /></td>
+                <td className="mono" style={{ fontSize: 12, color: "var(--fg-2)" }}>
+                  {u.entitlement && u.entitlement.until ? fmtDate(u.entitlement.until) : "Never"}
+                </td>
+                <td className="mono" style={{ fontSize: 11.5, color: "var(--fg-3)" }}>
+                  {(u.entitlement && u.entitlement.source) || "—"}
+                </td>
+                <td className="mono" style={{ textAlign: "right", fontSize: 12, color: u.sessions ? "var(--fg-1)" : "var(--fg-3)" }}>
+                  {u.sessions || 0}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mono" style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 12 }}>
+        Right-click any row to grant, change or remove a licence.
+      </p>
+
+      {menu && (
+        <RowMenu
+          at={menu.at} user={menu.user} dir={dir}
+          onClose={() => setMenu(null)}
+          onCustom={(u) => setDialog({ user: u })}
+          onToast={toast.show}
+        />
+      )}
+      {dialog && (
+        <GrantDialog
+          user={dialog.user} users={users} dir={dir}
+          onClose={() => setDialog(null)}
+          onToast={toast.show}
+        />
+      )}
+      {toast.node}
+    </>
   );
 }
 
 /* The roster from GET /admin/users, which is Clerk's user list merged with what
    the Worker knows. Every column below is a field that endpoint actually
    returns — the old per-row "View" button opened nothing, and the seat it took
-   now shows the session count the API was already sending. */
-function DevBuyers({ users }) {
+   now shows the session count the API was already sending.
+
+   Since the gate closed the roster also carries the licence, which is what the
+   right-click menu acts on. It is the same menu the Licences tab uses; this is
+   just the other place you already have the person on screen. */
+function DevBuyers({ users, dir, me }) {
   const [q, setQ] = useState("");
+  const toast = useToast();
+  const [menu, setMenu] = useState(null);       // null | { at, user }
+  const [dialog, setDialog] = useState(null);   // null | { user }
+
   const filtered = users.filter(u =>
     q === "" || u.email.toLowerCase().includes(q.toLowerCase())
   );
-  const buyers = filtered.filter(u => u.role !== "dev");
-  const devs   = filtered.filter(u => u.role === "dev");
-  const active = users.filter(u => u.lastSeen && (Date.now() - u.lastSeen) < 5 * 60 * 1000).length;
+  const devs     = filtered.filter(u => u.role === "dev");
+  const active   = users.filter(u => u.lastSeen && (Date.now() - u.lastSeen) < 5 * 60 * 1000).length;
+  const licensed = users.filter(u => u.licensed).length;
 
   return (
     <>
-      <DashHead title="Buyers" sub="Everyone with an account, and whether their launcher is live." />
+      <DashHead title="Buyers" sub="Everyone with an account, whether their launcher is live, and whether they are allowed in." />
       <div className="dash-stats">
         <Stat label="Total accounts" value={users.length} />
-        {/* Named for what it counts. Whether an account has PAID is the
-            entitlement record, which this endpoint does not return. */}
-        <Stat label="Buyer accounts" value={buyers.length} accent />
+        {/* Now the count that matters: an account without a licence cannot
+            sign a launcher in, so this is buyers rather than sign-ups. */}
+        <Stat label="Licensed" value={licensed} accent subtle={`${users.length - licensed} without`} />
         <Stat label="Active now"  value={active} subtle={`${active === 1 ? "user" : "users"} in last 5m`} />
         <Stat label="Developers"  value={devs.length} subtle="incl. you" />
       </div>
@@ -668,10 +1182,21 @@ function DevBuyers({ users }) {
           onFocus={(e) => { e.target.style.borderColor = "var(--acc-line)"; }}
           onBlur={(e) => { e.target.style.borderColor = "var(--line-strong)"; }}
         />
-        <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)", marginLeft: "auto" }}>
+        <span className="mono" style={{ fontSize: 11, color: "var(--fg-3)" }}>
           {filtered.length} {filtered.length === 1 ? "result" : "results"}
         </span>
+        <button className="btn btn-primary" style={{ marginLeft: "auto" }} onClick={() => setDialog({ user: null })}>
+          <DashIcon name="license" size={13} />
+          Grant a licence
+        </button>
       </div>
+
+      {dir.error && (
+        <div className="dash-error">
+          <span>Last write failed: <span className="mono">{dir.error}</span></span>
+          <button className="rm-btn" onClick={dir.clearError}>Dismiss</button>
+        </div>
+      )}
 
       <div className="dash-card" style={{ padding: 0 }}>
         <table className="dash-table">
@@ -679,6 +1204,7 @@ function DevBuyers({ users }) {
             <tr>
               <th style={{ width: 32 }}></th>
               <th>Email</th>
+              <th>Licence</th>
               <th>Role</th>
               <th>Joined</th>
               <th>Last seen</th>
@@ -687,7 +1213,7 @@ function DevBuyers({ users }) {
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan="6" style={{ textAlign: "center", padding: 40, color: "var(--fg-3)" }}>
+              <tr><td colSpan="7" style={{ textAlign: "center", padding: 40, color: "var(--fg-3)" }}>
                 {users.length === 0 ? "No accounts yet, sign up a buyer to see them here." : `No accounts match "${q}".`}
               </td></tr>
             )}
@@ -695,11 +1221,18 @@ function DevBuyers({ users }) {
               const isLive = u.lastSeen && (Date.now() - u.lastSeen) < 5 * 60 * 1000;
               const ini = u.email.slice(0, 2).toUpperCase();
               return (
-                <tr key={u.email}>
+                <tr
+                  key={u.email}
+                  onContextMenu={(e) => { e.preventDefault(); setMenu({ at: { x: e.clientX, y: e.clientY }, user: u }); }}
+                  style={{ cursor: "context-menu", opacity: dir.busy === u.id ? 0.5 : 1 }}
+                >
                   <td>
                     <span className="dash-avatar small">{ini}</span>
                   </td>
-                  <td style={{ fontWeight: 600, color: "var(--fg)", fontFamily: "var(--mono)", fontSize: 12.5 }}>{u.email}</td>
+                  <td style={{ fontWeight: 600, color: "var(--fg)", fontFamily: "var(--mono)", fontSize: 12.5 }}>
+                    {u.email}{u.email === me && <span style={{ color: "var(--fg-3)", fontWeight: 400 }}> · you</span>}
+                  </td>
+                  <td><LicenceChip u={u} /></td>
                   <td>
                     {u.role === "dev"
                       ? <span style={{ color: "var(--acc)", fontFamily: "var(--mono)", fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase" }}>● Dev</span>
@@ -718,6 +1251,27 @@ function DevBuyers({ users }) {
           </tbody>
         </table>
       </div>
+
+      <p className="mono" style={{ fontSize: 11, color: "var(--fg-3)", marginTop: 12 }}>
+        Right-click a row to grant a licence, or to remove someone's access.
+      </p>
+
+      {menu && (
+        <RowMenu
+          at={menu.at} user={menu.user} dir={dir}
+          onClose={() => setMenu(null)}
+          onCustom={(u) => setDialog({ user: u })}
+          onToast={toast.show}
+        />
+      )}
+      {dialog && (
+        <GrantDialog
+          user={dialog.user} users={users} dir={dir}
+          onClose={() => setDialog(null)}
+          onToast={toast.show}
+        />
+      )}
+      {toast.node}
     </>
   );
 }

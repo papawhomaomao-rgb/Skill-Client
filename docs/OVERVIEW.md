@@ -105,8 +105,13 @@ a token, like a browser session.
    launcher in front of them. This is the whole security model — see below.
 
 6. **Approve** calls `POST /auth/device/approve` with the Clerk session token.
-   The Worker mints a launcher token bound to the Clerk user id from the
-   *verified claims*, never from the request body.
+   The Worker checks that account holds a licence, and if it does, mints a
+   launcher token bound to the Clerk user id from the *verified claims*, never
+   from the request body. No licence is `{"ok":false,"status":"no_license"}` and
+   no token — **signing up is not what buys access**, and having the `.exe` is
+   not either. The same check runs on refresh, on every heartbeat and on the
+   config cloud, so a licence that lapses stops a session already running rather
+   than only the next sign-in. See `LAUNCHER-AUTH-v1.md`.
 
 7. **Launcher has been polling** `POST /auth/device/poll` every `interval`
    seconds. Next poll returns `token`, `refresh_token`, `display_name`, `email`,

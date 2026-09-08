@@ -220,7 +220,12 @@ function LinkPage() {
           body={`${user?.primaryEmailAddress?.emailAddress || "This account"} doesn't have a Skilled licence yet, so the launcher can't be signed in. Once a licence is active, restart the launcher and this will go through.`}
           action={
             <div style={{ marginTop: 22, display: "flex", gap: 9, justifyContent: "center", flexWrap: "wrap" }}>
-              <a href="/pricing" className="btn btn-primary">Get a licence</a>
+              {/* index.html#pricing, not /pricing. There is no /pricing route
+                  — the pricing section lives on the one page the site has, and
+                  app.jsx scrolls to that anchor on load. This screen was
+                  unreachable while the entitlement gate was open, which is how
+                  its only call to action came to point at a 404. */}
+              <a href="index.html#pricing" className="btn btn-primary">Get a licence</a>
               <a href="index.html" className="btn btn-ghost">Open dashboard</a>
             </div>
           }

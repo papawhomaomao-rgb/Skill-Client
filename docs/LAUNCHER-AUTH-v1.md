@@ -282,30 +282,75 @@ active, one-time purchase, manual grant, staff account — the contract does not
 care and should not encode it. It only defines what happens when the answer is
 no.
 
-### Launch position: build the check, leave the gate open
+### The gate is closed
 
-Skilled is a paid product. There is no purchase flow yet, so shipping the gate
-closed would lock out everyone including you.
+It was not, for a while, and that was deliberate: the check was built and wired
+into all three endpoints against a predicate that returned `true` for every
+signed-in account, so that sign-in worked end to end before there was anything
+to buy. `ENTITLEMENT_ENFORCED` is now `"true"` and the predicate answers from
+KV, which means **having an account is no longer the same as having paid**. An
+`.exe` obtained from anywhere, driven by a real Clerk account with no licence,
+gets `no_license` at approve and never receives a token.
 
-So: build the entitlement check properly, wired into all three endpoints, with a
-predicate that currently returns `true` for every signed-in account. Sign-in then
-works end to end immediately, and turning Skilled paid later is one function on
-the Worker — no change to the launcher, the DLL, or this contract.
+Where the check runs, and why it is in all of these rather than only at approve:
 
-The `no_license` screens are unreachable until that predicate tightens. Build
-them anyway; they are the path a customer hits the day a card expires, and that
-is a bad day to discover the screen was never finished.
+| Endpoint | Refusal | Stops |
+|---|---|---|
+| `POST /auth/device/approve` | `{"ok":false,"status":"no_license"}` | A new sign-in on an unpaid account |
+| `POST /auth/device/poll` | `{"status":"no_license"}` | The launcher spinning on a code that was refused |
+| `POST /auth/launcher/refresh` | `{"status":"revoked"}` | An existing session outliving its licence by more than an hour |
+| `POST /api/launcher/heartbeat` | `{"ok":false,"reason":"no_license"}` | A session that lapses mid-game, within 15 seconds |
+| `GET/POST /api/configs/*` (`lt_` bearer) | `403` | The config cloud answering an unlicensed client |
 
-Two consequences worth writing down:
+Approve alone would not be enough. A token minted while a licence was valid
+lives for an hour and refreshes indefinitely, so a refund or a chargeback that
+only checked at approve would take effect whenever the customer next chose to
+sign in — which is to say never. The heartbeat is what makes a revoke land in
+seconds; refresh is what makes it land at all if the heartbeat is being
+avoided.
 
-- The website's "free, and it stays that way" copy is wrong and has been removed.
-  The `no_license` screen points at `/pricing`, a route that does not exist yet —
-  correct the day it matters, harmless until then, and the screen is unreachable
-  in the meantime.
-- The purchase flow itself — payment provider, webhooks, writing entitlement
-  somewhere the Worker can read it — is unscoped work and is its own project.
-  Nothing in this contract depends on it, which is the point of leaving the gate
-  open.
+Consequences worth writing down:
+
+- **Closing the gate locks out staff too, including whoever deploys it.** The
+  predicate takes a user id and nothing else — no role — so being a `dev` grants
+  no access. That is on purpose: a gate that reads roles has two answers and the
+  second one is invisible from the record. Staff hold a real record like anyone
+  else. `POST /admin/entitlement` with an empty body grants one to the caller,
+  and that is the first thing to run after the deploy that closes it.
+- **Anyone who bought before enforcement needs backfilling** for the same
+  reason. No record is no licence, regardless of what they paid or when.
+- The `no_license` screens are now reachable, so their copy is load-bearing
+  rather than hypothetical. The one on `link.html` used to send people to
+  `/pricing`, a route this site has never had; it points at `index.html#pricing`
+  now.
+- Rollback is `ENTITLEMENT_ENFORCED` back to anything but `"true"` plus a
+  redeploy. It is a var and not a code change precisely so that reopening is not
+  a git revert made under pressure. Reopening is a business decision, though,
+  not a fix: when someone who paid cannot get in, the thing to check is whether
+  their `ent:` record exists.
+
+### Granting by hand
+
+Not every licence comes from Stripe, and the ones that do not have to come from
+somewhere. `POST /admin/entitlement` (dev bearer) covers staff and testers, the
+pre-enforcement backfill, a purchase whose webhook was lost in transit, and
+goodwill at the end of a support thread.
+
+```
+GET    /admin/entitlement?user_id=…|email=…     record + audit log
+POST   /admin/entitlement                       { user_id | email, plan?, days?,
+                                                  until?, staff?, note? }
+DELETE /admin/entitlement?user_id=…|email=…     revoke, and drop the sessions
+```
+
+An `email` is resolved through Clerk and matches only an account that has
+**verified** it. Omitting the target on `POST` means the caller — the bootstrap
+above. Omitting it on `DELETE` is a `400`, because "no target" must never
+resolve to the person holding the keys.
+
+These exist rather than a hand-written `wrangler kv key put` because the KV
+route skips the audit log, skips the session revocation that has to accompany a
+removal, and turns a misspelled `until` into an accidental lifetime licence.
 
 ### One new status: `no_license`
 
@@ -316,8 +361,8 @@ Two consequences worth writing down:
 ```
 
 Return it when the verified Clerk user has no entitlement. `link.html` says so
-plainly and links to `/pricing` — this is the moment someone finds out, so it is
-worth writing well.
+plainly and links to the pricing section — this is the moment someone finds
+out, so it is worth writing well.
 
 Also **mark the `device_code` as `no_license`** when you refuse. Otherwise the
 launcher keeps polling a code that will never be approved and spins for the full
